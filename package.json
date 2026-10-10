@@ -11,6 +11,7 @@
     "setup": "npm install && npm --prefix apps/web-react install && npm --prefix apps/web-react run build",
     "start": "node apps/server/src/index.js",
     "dev": "node --watch apps/server/src/index.js",
+    "start:single": "node apps/server/src/index.js --only single",
     "start:site": "node apps/server/src/index.js --only site",
     "start:admin": "node apps/server/src/index.js --only admin",
     "build": "npm --prefix apps/web-react run build",

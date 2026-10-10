@@ -59,6 +59,14 @@ export const config = {
       port: adminPort,
       baseUrl: process.env.ADMIN_BASE_URL || `http://localhost:${adminPort}`,
     },
+    /** 单端口模式：前台走 /，后台走 /admin 前缀（免费云平台通常只暴露一个端口） */
+    single: {
+      role: "single",
+      name: "单端口（前台 + 后台）",
+      host,
+      port: Number(process.env.PORT || process.env.SINGLE_PORT || sitePort),
+      baseUrl: process.env.SITE_BASE_URL || `http://localhost:${sitePort}`,
+    },
   },
 
   db: {

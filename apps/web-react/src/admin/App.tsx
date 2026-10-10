@@ -18,6 +18,22 @@ import { UsersPage } from "./pages/UsersPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { LogsPage } from "./pages/LogsPage";
 
+/**
+ * 后台路由前缀。
+ * 双端口部署（后台独占一个端口）没有前缀；单端口部署（云平台）后台挂在 /admin 下。
+ * 服务端注入的 adminBase 在单端口模式下是 `当前域名/admin`，据此判断。
+ */
+function adminBasename(): string {
+  const runtime =
+    typeof window !== "undefined" ? window.JKP_RUNTIME : undefined;
+  if (!runtime?.adminBase) return "";
+  const origin = window.location.origin;
+  if (runtime.adminBase === `${origin}/admin` || runtime.adminBase === `${origin}/admin/`) {
+    return "/admin";
+  }
+  return "";
+}
+
 /** 未登录时跳登录页；探测期间显示骨架，避免白屏 */
 function RequireAuth() {
   const { admin, loading } = useAuth();
@@ -41,7 +57,7 @@ export function AdminApp() {
   return (
     <ToastProvider>
       <ConfirmProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={adminBasename()}>
           <AuthProvider>
             <Routes>
               <Route path="/login" element={<LoginPage />} />

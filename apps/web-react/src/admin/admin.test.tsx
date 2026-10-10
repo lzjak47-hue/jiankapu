@@ -16,6 +16,14 @@ import {
   type MockResult,
 } from "../test/mockFetch";
 
+/* 模拟双端口部署的运行时注入：adminBase 不带 /admin 前缀，
+   后台路由 basename 为空；这样单端口模式下才能得到 /admin 前缀。 */
+window.JKP_RUNTIME = {
+  role: "admin",
+  siteBase: "http://localhost:2001",
+  adminBase: "http://localhost:2002",
+};
+
 const dashboardData = {
   stats: [
     { label: "今日订单", value: 16, unit: "笔", delta: "+12.4%", up: true, icon: "🧾" },

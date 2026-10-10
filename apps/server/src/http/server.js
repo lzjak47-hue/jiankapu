@@ -48,16 +48,32 @@ export function buildRouter() {
  *   dist/admin/index.html    后台 SPA
  *   dist/assets/*            两者共享的 JS / CSS
  *
- * 后台服务以 dist/admin 为根，遇到 /assets/* 回落到 dist，
- * 这样两个应用各自的 index.html 都能用同一套相对路径引用共享资源。
+ * 后台服务以 dist/admin 为根，遇到 /assets/* 回落到 dist；
+ * 单端口模式（single）按路径前缀分流：/admin/* 走后台，其余走前台。
  */
-function staticOptionsFor(role) {
+function staticOptionsFor(role, pathname = "") {
   if (role === "admin") {
     return {
       root: path.join(config.paths.webDist, "admin"),
       fallbackRoot: config.paths.webDist,
       spaIndex: "/index.html",
       role,
+    };
+  }
+  if (role === "single") {
+    const adminPath = pathname === "/admin" || pathname.startsWith("/admin/");
+    if (adminPath) {
+      return {
+        root: path.join(config.paths.webDist, "admin"),
+        fallbackRoot: config.paths.webDist,
+        spaIndex: "/index.html",
+        role: "admin",
+      };
+    }
+    return {
+      root: config.paths.webDist,
+      spaIndex: "/index.html",
+      role: "site",
     };
   }
   return {
@@ -97,21 +113,27 @@ async function handleRequest(req, res, router, role) {
     return;
   }
 
-  /* ---------------- 前台服务：旧的 /admin 链接统一跳后台 ---------------- */
-  if (role === "site" && (pathname === "/admin" || pathname.startsWith("/admin/"))) {
+  /* ------- 前台服务：旧的 /admin 链接统一跳后台；单端口模式只跳旧式地址 ------ */
+  if ((role === "site" || role === "single") && (pathname === "/admin" || pathname.startsWith("/admin/"))) {
     /* 把旧版静态页地址映射到 SPA 路由：
        /admin/            → /
        /admin/login.html  → /login
        /admin/orders.html → /orders          */
     let rest = pathname.slice("/admin".length);
-    if (rest === "" || rest === "/" || rest === "/index.html") {
-      rest = "/";
-    } else {
-      rest = rest.replace(/\.html$/, "");
+    const legacy = rest === "" || rest === "/" || rest.endsWith(".html");
+
+    /* 单端口模式：/admin/login 这类 SPA 路由交给下面的静态服务（回退到后台入口），
+       只有旧式 .html 链接与裸 /admin 才跳转，避免无限重定向。 */
+    if (role === "site" || legacy) {
+      if (rest === "" || rest === "/" || rest === "/index.html") {
+        rest = "/";
+      } else {
+        rest = rest.replace(/\.html$/, "");
+      }
+      res.writeHead(302, { Location: `${config.servers.admin.baseUrl}${rest}` });
+      res.end();
+      return;
     }
-    res.writeHead(302, { Location: `${config.servers.admin.baseUrl}${rest}` });
-    res.end();
-    return;
   }
 
   /* ------------------------------ API ------------------------------ */
@@ -153,7 +175,7 @@ async function handleRequest(req, res, router, role) {
   }
 
   /* ---------------------------- 静态文件 ---------------------------- */
-  const served = await serveStatic(req, res, pathname, staticOptionsFor(role));
+  const served = await serveStatic(req, res, pathname, staticOptionsFor(role, pathname));
   if (served) return;
 
   notFound(res, role);

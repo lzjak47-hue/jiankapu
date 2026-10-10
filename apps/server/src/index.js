@@ -4,8 +4,10 @@
  *   npm start                     同时启动前台(2001)与后台(2002)
  *   node src/index.js --only site 只启动前台
  *   node src/index.js --only admin 只启动后台
+ *   node src/index.js --only single 单端口模式（/ 前台，/admin 后台，用于云平台单端口部署）
  *
- * 环境变量见 config.js（PORT 相关：SITE_PORT / ADMIN_PORT，数据库：PG* 或 DATABASE_URL）
+ * 环境变量见 config.js（PORT 相关：SITE_PORT / ADMIN_PORT / PORT / SINGLE_PORT，
+ * 数据库：PG* 或 DATABASE_URL）
  */
 import config from "./config.js";
 import { initDatabase, closePool } from "./db.js";
@@ -21,8 +23,11 @@ const only = (() => {
   const idx = process.argv.indexOf("--only");
   if (idx < 0) return null;
   const value = process.argv[idx + 1];
-  return value === "site" || value === "admin" ? value : null;
+  return value === "site" || value === "admin" || value === "single" ? value : null;
 })();
+
+const ROLE_LABEL = { site: "前台商城", admin: "管理后台", single: "前台 + 后台" };
+const ROLE_PATH = { site: "/", admin: "/login", single: "/（后台 /admin/login）" };
 
 function banner(servers) {
   const line = "─".repeat(62);
@@ -31,10 +36,7 @@ function banner(servers) {
   console.log("   简卡铺 · 服务已启动");
   console.log(`  ${line}`);
   for (const { role, server, port } of servers) {
-    const label = role === "site" ? "前台商城" : "管理后台";
-    /* 两个都是 SPA：前台首页是 /，后台登录页是 /login */
-    const path = role === "site" ? "/" : "/login";
-    console.log(`   ${label}    http://localhost:${port}${path}`);
+    console.log(`   ${ROLE_LABEL[role]}    http://localhost:${port}${ROLE_PATH[role]}`);
   }
   console.log("");
   console.log("   管理员账号  admin / 123456");
