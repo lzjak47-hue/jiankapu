@@ -34,7 +34,68 @@ export function OrdersPage() {
   const [sort, setSort] = useState("default");
   const [page, setPage] = useState(1);
   const [detail, setDetail] = useState<AdminOrder | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [batchBusy, setBatchBusy] = useState(false);
   const debouncedKeyword = useDebouncedValue(keyword);
+
+  /** 换页 / 换筛选后清空选择，避免「操作了看不见的订单」 */
+
+  function toggleOne(no: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(no)) next.delete(no);
+      else next.add(no);
+      return next;
+    });
+  }
+
+  function toggleAllOnPage() {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allOnPageSelected) pageNos.forEach((no) => next.delete(no));
+      else pageNos.forEach((no) => next.add(no));
+      return next;
+    });
+  }
+
+  async function runBatch(action: "close" | "resend") {
+    if (selectedNos.length === 0) {
+      toast.warn("请先勾选订单");
+      return;
+    }
+
+    const isClose = action === "close";
+    const ok = await confirm({
+      title: isClose ? `批量关闭 ${selectedNos.length} 笔订单` : `批量补发 ${selectedNos.length} 笔订单`,
+      message: isClose
+        ? "只会关闭其中「待付款」的订单并释放卡密；其它状态的会自动跳过并列出原因。确定继续吗？"
+        : "对其中「已发货 / 处理中」的订单各补发一批卡密（数量同原订单），可用库存不足的会自动跳过。确定继续吗？",
+      okText: isClose ? "批量关闭" : "批量补发",
+      danger: isClose,
+    });
+    if (!ok) return;
+
+    setBatchBusy(true);
+    try {
+      const result = await api.admin.batchOrders({ ids: selectedNos, action });
+      if (result.skipped.length > 0) {
+        toast.warn(
+          `已处理 ${result.affected} 笔，${result.skipped.length} 笔失败：${result.skipped[0]}` +
+            (result.skipped.length > 1 ? ` 等` : "")
+        );
+      } else {
+        toast.success(`已处理 ${result.affected} 笔订单`);
+      }
+      setSelected(new Set());
+      reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "批量操作失败");
+    } finally {
+      setBatchBusy(false);
+    }
+  }
+
+  /** 取消定位，回到完整列表 */
 
   /**
    * 从客户详情点订单跳过来时带着 ?no=订单号。
@@ -63,6 +124,11 @@ export function OrdersPage() {
     [debouncedKeyword, status, pay, sort, page]
   );
 
+  const rows = data?.rows ?? [];
+  const pageNos = rows.map((o) => o.no);
+  const allOnPageSelected = pageNos.length > 0 && pageNos.every((no) => selected.has(no));
+  const selectedNos = [...selected];
+
   /* 目标行滚动到视野中央，省得用户自己找。
      要等列表数据回来才可能有那一行，所以放在请求之后。 */
   useEffect(() => {
@@ -89,6 +155,7 @@ export function OrdersPage() {
     return (value: T) => {
       setter(value);
       setPage(1);
+      setSelected(new Set());
     };
   }
 
@@ -208,11 +275,48 @@ export function OrdersPage() {
         </div>
       )}
 
+      {/* 选中后才出现的批量操作条 */}
+      {selectedNos.length > 0 && (
+        <div className="batch-bar">
+          <span className="count">已选中 {selectedNos.length} 笔订单</span>
+          <div className="spacer" />
+          <button
+            className="btn btn-ghost btn-sm"
+            disabled={batchBusy}
+            onClick={() => void runBatch("close")}
+          >
+            批量关闭
+          </button>
+          <button
+            className="btn btn-ghost btn-sm"
+            disabled={batchBusy}
+            onClick={() => void runBatch("resend")}
+          >
+            批量补发
+          </button>
+          <button
+            className="btn btn-ghost btn-sm"
+            disabled={batchBusy}
+            onClick={() => setSelected(new Set())}
+          >
+            取消选择
+          </button>
+        </div>
+      )}
+
       <section className="block">
         <div className="table-scroll">
           <table className="table">
             <thead>
               <tr>
+                <th className="check-cell">
+                  <input
+                    type="checkbox"
+                    aria-label="全选本页订单"
+                    checked={allOnPageSelected}
+                    onChange={toggleAllOnPage}
+                  />
+                </th>
                 <SortableTh label="订单号" field="no" sort={sort} onSort={setSort} />
                 <th>商品</th>
                 <th>联系方式</th>
@@ -227,59 +331,71 @@ export function OrdersPage() {
               </tr>
             </thead>
             <tbody>
-              {loading && <TableSkeleton cols={10} />}
-              {!loading && error && <TableEmpty cols={10} icon="🔌" text={error} />}
+              {loading && <TableSkeleton cols={12} />}
+              {!loading && error && <TableEmpty cols={12} icon="🔌" text={error} />}
               {!loading && !error && (data?.rows.length ?? 0) === 0 && (
-                <TableEmpty cols={10} icon="🧾" text="没有符合条件的订单" />
+                <TableEmpty cols={12} icon="🧾" text="没有符合条件的订单" />
               )}
 
               {!loading &&
-                data?.rows.map((o) => (
-                  <tr
-                    key={o.no}
-                    data-order-no={o.no}
-                    className={cx(o.no === focusNo && "is-focus")}
-                  >
-                    <td className="mono nowrap">{o.no}</td>
-                    <td>
-                      <div className="cell-main">
-                        <span className="cell-thumb">🧾</span>
-                        <div>
-                          <div className="t1">{o.product}</div>
-                          <div className="t2">
-                            {o.spec || "—"} × {o.qty}
+                data?.rows.map((o) => {
+                  const checked = selected.has(o.no);
+                  return (
+                    <tr
+                      key={o.no}
+                      data-order-no={o.no}
+                      className={cx(o.no === focusNo && "is-focus", checked && "is-selected")}
+                    >
+                      <td className="check-cell">
+                        <input
+                          type="checkbox"
+                          aria-label={`选择订单 ${o.no}`}
+                          checked={checked}
+                          onChange={() => toggleOne(o.no)}
+                        />
+                      </td>
+                      <td className="mono nowrap">{o.no}</td>
+                      <td>
+                        <div className="cell-main">
+                          <span className="cell-thumb">🧾</span>
+                          <div>
+                            <div className="t1">{o.product}</div>
+                            <div className="t2">
+                              {o.spec || "—"} × {o.qty}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="nowrap dim">{o.contact || "—"}</td>
-                    <td className="mono nowrap">{o.ip || <span className="dim">—</span>}</td>
-                    <td className="num nowrap">¥{money(o.amount)}</td>
-                    <td className="nowrap">{o.pay}</td>
-                    <td>
-                      <StatusTag text={o.status} tone={orderStatusClass(o.status)} />
-                    </td>
-                    <td className="nowrap dim">{minutePart(o.time)}</td>
-                    <td className="nowrap dim">{o.paidAt ? minutePart(o.paidAt) : "—"}</td>
-                    <td>
-                      <div className="row-actions">
-                        <button onClick={() => void openDetail(o.no)}>详情</button>
-                        <span className="sep" />
-                        <button onClick={() => void resend(o)}>补发</button>
-                        <span className="sep" />
-                        {o.status === "待付款" ? (
-                          <button className="danger" onClick={() => void close(o)}>
-                            关闭
-                          </button>
-                        ) : (
-                          <button className="danger" onClick={() => void refund(o)}>
-                            退款
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="nowrap dim">{o.contact || "—"}</td>
+                      <td className="mono nowrap">{o.ip || <span className="dim">—</span>}</td>
+                      <td className="num nowrap">¥{money(o.amount)}</td>
+                      <td className="num nowrap">{o.qty}</td>
+                      <td className="nowrap">{o.pay}</td>
+                      <td>
+                        <StatusTag text={o.status} tone={orderStatusClass(o.status)} />
+                      </td>
+                      <td className="nowrap dim">{minutePart(o.time)}</td>
+                      <td className="nowrap dim">{o.paidAt ? minutePart(o.paidAt) : "—"}</td>
+                      <td>
+                        <div className="row-actions">
+                          <button onClick={() => void openDetail(o.no)}>详情</button>
+                          <span className="sep" />
+                          <button onClick={() => void resend(o)}>补发</button>
+                          <span className="sep" />
+                          {o.status === "待付款" ? (
+                            <button className="danger" onClick={() => void close(o)}>
+                              关闭
+                            </button>
+                          ) : (
+                            <button className="danger" onClick={() => void refund(o)}>
+                              退款
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>

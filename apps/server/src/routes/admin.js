@@ -9,6 +9,7 @@ import { unauthorized, notFound, badRequest, upstream } from "../lib/errors.js";
 import { str, int, lines, oneOf } from "../lib/validate.js";
 import { toCsv } from "../lib/csv.js";
 import { nowStr } from "../lib/time.js";
+import { logger, getRuntimeLogs } from "../lib/logger.js";
 import { all, run, tx } from "../db.js";
 import config from "../config.js";
 import * as authService from "../services/auth.js";
@@ -315,6 +316,22 @@ export function registerAdminRoutes(router) {
     ok(ctx.res, order);
   });
 
+  router.post("/api/admin/orders/batch", async (ctx) => {
+    const session = await requireAuth(ctx);
+    const action = oneOf(ctx.body?.action, ["close", "resend"], { field: "批量操作类型" });
+    const result = await orderService.batch(ctx.body?.ids ?? [], action, {
+      actor: session.admin.username,
+      ip: ctx.ip,
+    });
+    await audit(
+      ctx,
+      session,
+      action === "close" ? "批量关闭订单" : "批量补发订单",
+      `${result.affected} 成功${result.skipped.length ? ` / ${result.skipped.length} 失败` : ""}`
+    );
+    ok(ctx.res, result);
+  });
+
   /* -------------------------------------------------------------- 卡密 */
 
   router.get("/api/admin/cards/stats", async (ctx) => {
@@ -470,6 +487,13 @@ export function registerAdminRoutes(router) {
     ok(ctx.res, await userService.detail(uid));
   });
 
+  router.post("/api/admin/users/batch-delete", async (ctx) => {
+    const session = await requireAuth(ctx);
+    const result = await userService.batchRemove(ctx.body?.ids ?? []);
+    await audit(ctx, session, "批量删除客户档案", `${result.affected} 条`);
+    ok(ctx.res, result);
+  });
+
   /* ------------------------------------------------------------ 提醒 */
 
   /**
@@ -555,7 +579,9 @@ export function registerAdminRoutes(router) {
       result = await notifyService.sendTest(channel, target);
     } catch (err) {
       /* 把真实原因回给管理员：是端口不对、授权码过期还是网关欠费，
-         只有原样透出错误信息才排查得了。默认的 500 会把原因吞掉。 */
+         只有原样透出错误信息才排查得了。默认的 500 会把原因吞掉。
+         同时写入系统日志缓冲，后台「系统日志」页可查。 */
+      logger.error(`通知测试失败（${channel} → ${target}）`, err);
       throw upstream(
         `${channel === "email" ? "邮件" : "短信"}发送失败：${err.message}`
       );
@@ -577,6 +603,16 @@ export function registerAdminRoutes(router) {
         perPage,
       })
     );
+  });
+
+  /* ------------------------------------------------------------ 系统日志 */
+
+  /* 内存缓冲的运行时日志：启动任务、定时清理、通知发送、接口异常等。
+     与上面的「操作日志」（管理员写操作审计）互补。 */
+  router.get("/api/admin/syslogs", async (ctx) => {
+    await requireAuth(ctx);
+    const limit = Math.min(500, Math.max(1, Number(ctx.query.get("limit") || 200) || 200));
+    ok(ctx.res, { logs: getRuntimeLogs(limit) });
   });
 }
 

@@ -30,9 +30,12 @@ export function fail(res, status, code, message, details) {
   json(res, status, { ok: false, code, message, ...(details ? { details } : {}) });
 }
 
-/** 把任意异常转成响应；ApiError 按自身状态码，其余按 500 处理 */
+/** 把任意异常转成响应；ApiError 按自身状态码，其余按 500 处理。
+ *  两类异常都写进系统日志缓冲：否则「通知测试失败」这类业务错误
+ *  在容器日志与后台都无迹可寻，管理员根本无从排查。 */
 export function failFromError(res, err, logger) {
   if (err instanceof ApiError) {
+    if (logger) logger.warn(`${err.status} ${err.code}：${err.message}`);
     fail(res, err.status, err.code, err.message, err.details);
     return;
   }

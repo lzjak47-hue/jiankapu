@@ -52,6 +52,7 @@ const NAV: NavGroup[] = [
     items: [
       { to: "/settings", label: "系统设置", icon: "⚙️", title: "系统设置", sub: "站点信息、交易规则、支付接口与安全策略" },
       { to: "/logs", label: "操作日志", icon: "📜", title: "操作日志", sub: "谁在什么时间做了什么，全部留痕" },
+      { to: "/syslogs", label: "系统日志", icon: "🖥️", title: "系统日志", sub: "运行情况与错误实时记录，排查问题的第一现场" },
     ],
   },
 ];

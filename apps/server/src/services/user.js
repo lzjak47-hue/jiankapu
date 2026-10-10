@@ -11,7 +11,7 @@
  * 待付款与已关闭的不计入，否则数字会虚高。
  */
 import { all, get, run, scalar } from "../db.js";
-import { notFound } from "../lib/errors.js";
+import { notFound, badRequest } from "../lib/errors.js";
 import { nowStr } from "../lib/time.js";
 import { orderBy } from "../lib/validate.js";
 
@@ -227,4 +227,19 @@ export async function touchByContact(contact, ip = "") {
   return uid;
 }
 
-export default { list, stats, detail, findByUid, touchByContact };
+/**
+ * 批量删除客户档案。
+ * 订单表自存联系方式、不引用本表，删除档案不影响任何订单与追溯。
+ * @param {string[]} uids
+ * @returns {Promise<{affected: number}>}
+ */
+export async function batchRemove(uids) {
+  const list = [...new Set((uids ?? []).map((v) => String(v ?? "").trim()).filter(Boolean))];
+  if (list.length === 0) throw badRequest("请至少选择一个客户");
+  if (list.length > 200) throw badRequest("一次最多删除 200 条客户档案");
+
+  const result = await run("DELETE FROM users WHERE uid = ANY(?)", list);
+  return { affected: result.changes };
+}
+
+export default { list, stats, detail, findByUid, touchByContact, batchRemove };

@@ -571,6 +571,13 @@ export interface Captcha {
 
 /* ========================================================== 浏览器注入项 */
 
+/** 内存缓冲的系统运行日志条目（后端 logger 环形缓冲，进程重启即清空） */
+export interface RuntimeLogEntry {
+  time: string;
+  level: "info" | "warn" | "error";
+  message: string;
+}
+
 /** 服务端在 HTML <head> 里注入的运行时配置 */
 export interface RuntimeConfig {
   role: "site" | "admin";

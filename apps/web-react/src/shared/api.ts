@@ -27,6 +27,7 @@ import type {
   Product,
   ProductInput,
   PublicOrder,
+  RuntimeLogEntry,
   SettingsInput,
   ShopUser,
   SiteStats,
@@ -279,6 +280,13 @@ export const api = {
     refundOrder: (no: string) =>
       request<AdminOrder>(`/api/admin/orders/${encodeURIComponent(no)}/refund`, { method: "POST" }),
 
+    /** 批量关闭 / 补发订单；单个失败不连累其它，skipped 返回原因 */
+    batchOrders: (input: { ids: string[]; action: "close" | "resend" }) =>
+      request<{ affected: number; skipped: string[] }>("/api/admin/orders/batch", {
+        method: "POST",
+        body: input,
+      }),
+
     /* 卡密 */
     cards: (
       params?: {
@@ -334,6 +342,10 @@ export const api = {
     userDetail: (uid: string, signal?: AbortSignal) =>
       request<CustomerDetail>(`/api/admin/users/${encodeURIComponent(uid)}`, { signal }),
 
+    /** 批量删除客户档案（不影响订单与追溯） */
+    batchDeleteUsers: (input: { ids: string[] }) =>
+      request<{ affected: number }>("/api/admin/users/batch-delete", { method: "POST", body: input }),
+
     /* 后台提醒（顶栏铃铛） */
     alerts: (params?: { since?: string }, signal?: AbortSignal) =>
       request<AlertsFeed>(`/api/admin/alerts${qs(params)}`, { signal }),
@@ -355,6 +367,10 @@ export const api = {
       params?: { keyword?: string; result?: string; page?: number; perPage?: number },
       signal?: AbortSignal
     ) => request<Paged<LogEntry>>(`/api/admin/logs${qs(params)}`, { signal }),
+
+    /** 内存缓冲的系统运行日志（启动任务 / 定时清理 / 通知发送 / 接口异常） */
+    systemLogs: (params?: { limit?: number }, signal?: AbortSignal) =>
+      request<{ logs: RuntimeLogEntry[] }>(`/api/admin/syslogs${qs(params)}`, { signal }),
   },
 };
 

@@ -471,6 +471,33 @@ export async function refund(orderNo, { actor = "system", ip = "" } = {}) {
   return toAdmin(await findRowByNo(orderNo));
 }
 
+/**
+ * 批量处理订单。
+ * 每个订单独立处理，单个失败不连累其它，原因一并返回（与商品批量同一语义）。
+ * @param {string[]} orderNos
+ * @param {"close"|"resend"} action
+ * @param {{actor?: string, ip?: string}} [meta]
+ * @returns {Promise<{affected: number, skipped: string[]}>}
+ */
+export async function batch(orderNos, action, { actor = "system", ip = "" } = {}) {
+  const list = [...new Set((orderNos ?? []).map((v) => String(v ?? "").trim()).filter(Boolean))];
+  if (list.length === 0) throw badRequest("请至少选择一个订单");
+  if (list.length > 200) throw badRequest("一次最多处理 200 个订单");
+
+  const skipped = [];
+  let affected = 0;
+  for (const no of list) {
+    try {
+      if (action === "close") await close(no, { actor, ip });
+      else await resend(no, { actor, ip });
+      affected += 1;
+    } catch (err) {
+      skipped.push(`${no}：${err.message}`);
+    }
+  }
+  return { affected, skipped };
+}
+
 /* -------------------------------------------------------------------- 清理 */
 
 /** 关闭所有已超时的未支付订单，释放卡密 */
@@ -503,5 +530,5 @@ export async function sweepExpired() {
 export default {
   ORDER_STATUS, PAID_STATUSES, PAY_LABELS,
   toPublic, toAdmin, findRowByNo, findPublic, searchPublic, list, stats,
-  create, markPaid, close, resend, refund, sweepExpired,
+  create, markPaid, close, resend, refund, batch, sweepExpired,
 };

@@ -30,6 +30,7 @@ import {
   TableSkeleton,
 } from "../../shared/components";
 import { useToast } from "../../shared/ToastProvider";
+import { useConfirm } from "../../shared/ConfirmProvider";
 import type { CustomerDetail, ShopUser } from "../../shared/types";
 
 const PER_PAGE = 8;
@@ -191,19 +192,72 @@ function CustomerDetailModal({ uid, onClose }: { uid: string; onClose: () => voi
 
 export function UsersPage() {
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [keyword, setKeyword] = useState("");
   const [sort, setSort] = useState("default");
   const [page, setPage] = useState(1);
   const [detailUid, setDetailUid] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [batchBusy, setBatchBusy] = useState(false);
   const debouncedKeyword = useDebouncedValue(keyword);
 
   const stats = useAsync((signal) => api.admin.userStats(signal), []);
-  const { data, loading, error } = useAsync(
+  const { data, loading, error, reload } = useAsync(
     (signal) =>
       api.admin.users({ keyword: debouncedKeyword, sort, page, perPage: PER_PAGE }, signal),
     [debouncedKeyword, sort, page]
   );
+
+  const rows = data?.rows ?? [];
+  const selectedIds = [...selected];
+  const pageIds = rows.map((u) => u.id);
+  const allOnPageSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllOnPage() {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allOnPageSelected) pageIds.forEach((id) => next.delete(id));
+      else pageIds.forEach((id) => next.add(id));
+      return next;
+    });
+  }
+
+  async function runBatchDelete() {
+    if (selectedIds.length === 0) {
+      toast.warn("请先勾选客户");
+      return;
+    }
+    const ok = await confirm({
+      title: `批量删除 ${selectedIds.length} 条客户档案`,
+      message:
+        "删除的是「客户档案」记录，订单数据与追溯不受影响。\n\n此操作不可撤销，确定继续吗？",
+      okText: "确认删除",
+      danger: true,
+    });
+    if (!ok) return;
+
+    setBatchBusy(true);
+    try {
+      const result = await api.admin.batchDeleteUsers({ ids: selectedIds });
+      toast.success(`已删除 ${result.affected} 条客户档案`);
+      setSelected(new Set());
+      reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "批量删除失败");
+    } finally {
+      setBatchBusy(false);
+    }
+  }
 
   /** 没有联系方式的客户（理论上不该出现）点开也没东西可看，先提示一下 */
   function openDetail(user: ShopUser) {
@@ -235,16 +289,48 @@ export function UsersPage() {
             onChange={(e) => {
               setKeyword(e.target.value);
               setPage(1);
+              setSelected(new Set());
             }}
           />
         </div>
       </div>
+
+      {/* 选中后才出现的批量操作条 */}
+      {selectedIds.length > 0 && (
+        <div className="batch-bar">
+          <span className="count">已选中 {selectedIds.length} 条客户档案</span>
+          <span className="small dim">删除档案不影响订单与追溯</span>
+          <div className="spacer" />
+          <button
+            className="btn btn-accent btn-sm"
+            disabled={batchBusy}
+            onClick={() => void runBatchDelete()}
+          >
+            批量删除
+          </button>
+          <button
+            className="btn btn-ghost btn-sm"
+            disabled={batchBusy}
+            onClick={() => setSelected(new Set())}
+          >
+            取消选择
+          </button>
+        </div>
+      )}
 
       <section className="block">
         <div className="table-scroll">
           <table className="table">
             <thead>
               <tr>
+                <th className="check-cell">
+                  <input
+                    type="checkbox"
+                    aria-label="全选本页客户"
+                    checked={allOnPageSelected}
+                    onChange={toggleAllOnPage}
+                  />
+                </th>
                 <th>客户 ID</th>
                 <SortableTh label="联系方式" field="name" sort={sort} onSort={setSort} />
                 <SortableTh label="订单数" field="orders" sort={sort} onSort={setSort} />
@@ -256,16 +342,26 @@ export function UsersPage() {
               </tr>
             </thead>
             <tbody>
-              {loading && <TableSkeleton cols={8} />}
-              {!loading && error && <TableEmpty cols={8} icon="🔌" text={error} />}
+              {loading && <TableSkeleton cols={9} />}
+              {!loading && error && <TableEmpty cols={9} icon="🔌" text={error} />}
               {!loading && !error && (data?.rows.length ?? 0) === 0 && (
-                <TableEmpty cols={8} icon="👥" text="还没有客户，前台有人下单后会自动建档" />
+                <TableEmpty cols={9} icon="👥" text="还没有客户，前台有人下单后会自动建档" />
               )}
 
               {!loading &&
-                data?.rows.map((u) => (
-                  <tr key={u.id}>
-                    <td className="mono nowrap">{u.id}</td>
+                data?.rows.map((u) => {
+                  const checked = selected.has(u.id);
+                  return (
+                    <tr key={u.id} className={checked ? "is-selected" : undefined}>
+                      <td className="check-cell">
+                        <input
+                          type="checkbox"
+                          aria-label={`选择客户 ${u.contact || u.id}`}
+                          checked={checked}
+                          onChange={() => toggleOne(u.id)}
+                        />
+                      </td>
+                      <td className="mono nowrap">{u.id}</td>
                     <td>
                       <div className="cell-main">
                         <span className="cell-thumb">{(u.contact || u.name).slice(0, 1)}</span>
@@ -286,7 +382,8 @@ export function UsersPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
             </tbody>
           </table>
         </div>
