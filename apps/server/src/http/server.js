@@ -116,21 +116,35 @@ async function handleRequest(req, res, router, role) {
   /* ------- 前台服务：旧的 /admin 链接统一跳后台；单端口模式只跳旧式地址 ------ */
   if ((role === "site" || role === "single") && (pathname === "/admin" || pathname.startsWith("/admin/"))) {
     /* 把旧版静态页地址映射到 SPA 路由：
-       /admin/            → /
        /admin/login.html  → /login
        /admin/orders.html → /orders          */
-    let rest = pathname.slice("/admin".length);
-    const legacy = rest === "" || rest === "/" || rest.endsWith(".html");
+    const rest = pathname.slice("/admin".length);
 
-    /* 单端口模式：/admin/login 这类 SPA 路由交给下面的静态服务（回退到后台入口），
-       只有旧式 .html 链接与裸 /admin 才跳转，避免无限重定向。 */
-    if (role === "site" || legacy) {
-      if (rest === "" || rest === "/" || rest === "/index.html") {
-        rest = "/";
+    if (role === "site") {
+      /* 双端口：前台端口没有后台页面，/admin/* 全部 302 到后台服务 */
+      let target = rest;
+      if (target === "" || target === "/" || target === "/index.html") {
+        target = "/";
       } else {
-        rest = rest.replace(/\.html$/, "");
+        target = target.replace(/\.html$/, "");
       }
-      res.writeHead(302, { Location: `${config.servers.admin.baseUrl}${rest}` });
+      res.writeHead(302, { Location: `${config.servers.admin.baseUrl}${target}` });
+      res.end();
+      return;
+    }
+
+    /* 单端口：后台就挂在 /admin 下。
+       裸 /admin、/admin/ 与 SPA 路由（/admin/login…）
+       直接交给静态服务（回退到后台入口），不跳转；
+       只有旧式 .html 页面地址才 302 到对应 SPA 路由。
+       注意不能用 adminBase 拼 "/"，否则 /admin/ 会 302 到自己造成循环。 */
+    if (rest === "/index.html") {
+      res.writeHead(302, { Location: `${config.servers.admin.baseUrl}/` });
+      res.end();
+      return;
+    }
+    if (rest.endsWith(".html")) {
+      res.writeHead(302, { Location: `${config.servers.admin.baseUrl}${rest.replace(/\.html$/, "")}` });
       res.end();
       return;
     }
