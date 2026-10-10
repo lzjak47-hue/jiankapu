@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 简卡铺 · 客户管理
  * ---------------------------------------------------------------------------
  * 本页的「客户」不是注册账号，而是**下单时填的那个联系方式**。
@@ -17,8 +17,9 @@ import {
   orderStatusClass,
   relativeTime,
 } from "../../shared/format";
-import { useAsync, useDebouncedValue } from "../../shared/hooks";
+import { useAsync, useDebouncedValue, useColumnVisibility } from "../../shared/hooks";
 import {
+  ColumnMenu,
   Empty,
   Modal,
   Pagination,
@@ -34,6 +35,18 @@ import { useConfirm } from "../../shared/ConfirmProvider";
 import type { CustomerDetail, ShopUser } from "../../shared/types";
 
 const PER_PAGE = 8;
+
+/** 可用列；勾选状态持久化在 localStorage */
+const COLS = [
+  { key: "id", label: "客户 ID" },
+  { key: "name", label: "联系方式" },
+  { key: "orders", label: "订单数" },
+  { key: "amount", label: "累计消费" },
+  { key: "ip", label: "最近下单 IP" },
+  { key: "created", label: "首次建档" },
+  { key: "last", label: "最近活跃" },
+  { key: "actions", label: "操作" },
+];
 
 /* ------------------------------------------------------------ 详情弹窗 */
 
@@ -201,6 +214,7 @@ export function UsersPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [batchBusy, setBatchBusy] = useState(false);
   const debouncedKeyword = useDebouncedValue(keyword);
+  const cols = useColumnVisibility("jkp-cols-users");
 
   const stats = useAsync((signal) => api.admin.userStats(signal), []);
   const { data, loading, error, reload } = useAsync(
@@ -293,6 +307,13 @@ export function UsersPage() {
             }}
           />
         </div>
+
+        <ColumnMenu
+          items={COLS}
+          visible={cols.visible}
+          onToggle={cols.toggle}
+          onShowAll={cols.showAll}
+        />
       </div>
 
       {/* 选中后才出现的批量操作条 */}
@@ -331,14 +352,14 @@ export function UsersPage() {
                     onChange={toggleAllOnPage}
                   />
                 </th>
-                <th>客户 ID</th>
-                <SortableTh label="联系方式" field="name" sort={sort} onSort={setSort} />
-                <SortableTh label="订单数" field="orders" sort={sort} onSort={setSort} />
-                <SortableTh label="累计消费" field="amount" sort={sort} onSort={setSort} />
-                <th>最近下单 IP</th>
-                <SortableTh label="首次建档" field="created" sort={sort} onSort={setSort} />
-                <SortableTh label="最近活跃" field="last" sort={sort} onSort={setSort} />
-                <th>操作</th>
+                {cols.visible("id") && <th>客户 ID</th>}
+                {cols.visible("name") && <SortableTh label="联系方式" field="name" sort={sort} onSort={setSort} />}
+                {cols.visible("orders") && <SortableTh label="订单数" field="orders" sort={sort} onSort={setSort} />}
+                {cols.visible("amount") && <SortableTh label="累计消费" field="amount" sort={sort} onSort={setSort} />}
+                {cols.visible("ip") && <th>最近下单 IP</th>}
+                {cols.visible("created") && <SortableTh label="首次建档" field="created" sort={sort} onSort={setSort} />}
+                {cols.visible("last") && <SortableTh label="最近活跃" field="last" sort={sort} onSort={setSort} />}
+                {cols.visible("actions") && <th>操作</th>}
               </tr>
             </thead>
             <tbody>
@@ -361,26 +382,30 @@ export function UsersPage() {
                           onChange={() => toggleOne(u.id)}
                         />
                       </td>
-                      <td className="mono nowrap">{u.id}</td>
-                    <td>
-                      <div className="cell-main">
-                        <span className="cell-thumb">{(u.contact || u.name).slice(0, 1)}</span>
-                        <div>
-                          <div className="t1">{u.contact || "未填写联系方式"}</div>
-                          <div className="t2">{u.name}</div>
+                      {cols.visible("id") && <td className="mono nowrap">{u.id}</td>}
+                    {cols.visible("name") && (
+                      <td>
+                        <div className="cell-main">
+                          <span className="cell-thumb">{(u.contact || u.name).slice(0, 1)}</span>
+                          <div>
+                            <div className="t1">{u.contact || "未填写联系方式"}</div>
+                            <div className="t2">{u.name}</div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="num nowrap">{int(u.orders)} 笔</td>
-                    <td className="num nowrap">¥{money(u.amount)}</td>
-                    <td className="mono nowrap">{u.lastIp || <span className="dim">—</span>}</td>
-                    <td className="nowrap dim">{minutePart(u.regAt)}</td>
-                    <td className="nowrap dim">{u.lastAt ? relativeTime(u.lastAt) : "—"}</td>
-                    <td>
-                      <div className="row-actions">
-                        <button onClick={() => openDetail(u)}>查看详情</button>
-                      </div>
-                    </td>
+                      </td>
+                    )}
+                    {cols.visible("orders") && <td className="num nowrap">{int(u.orders)} 笔</td>}
+                    {cols.visible("amount") && <td className="num nowrap">¥{money(u.amount)}</td>}
+                    {cols.visible("ip") && <td className="mono nowrap">{u.lastIp || <span className="dim">—</span>}</td>}
+                    {cols.visible("created") && <td className="nowrap dim">{minutePart(u.regAt)}</td>}
+                    {cols.visible("last") && <td className="nowrap dim">{u.lastAt ? relativeTime(u.lastAt) : "—"}</td>}
+                    {cols.visible("actions") && (
+                      <td>
+                        <div className="row-actions">
+                          <button onClick={() => openDetail(u)}>查看详情</button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                   );
                 })}

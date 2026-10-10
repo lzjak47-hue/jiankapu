@@ -1,12 +1,13 @@
-/**
+﻿/**
  * 简卡铺 · 订单管理
  */
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../../shared/api";
 import { cx, money, int, orderStatusClass, copyText, minutePart } from "../../shared/format";
-import { useAsync, useDebouncedValue } from "../../shared/hooks";
+import { useAsync, useDebouncedValue, useColumnVisibility } from "../../shared/hooks";
 import {
+  ColumnMenu,
   Modal,
   Pagination,
   SecretList,
@@ -23,6 +24,21 @@ import type { AdminOrder } from "../../shared/types";
 
 const PER_PAGE = 8;
 
+/** 可用列；勾选状态持久化在 localStorage */
+const COLS = [
+  { key: "no", label: "订单号" },
+  { key: "product", label: "商品" },
+  { key: "contact", label: "联系方式" },
+  { key: "ip", label: "下单 IP" },
+  { key: "amount", label: "金额" },
+  { key: "qty", label: "数量" },
+  { key: "pay", label: "支付方式" },
+  { key: "status", label: "状态" },
+  { key: "created", label: "下单时间" },
+  { key: "paid", label: "支付时间" },
+  { key: "actions", label: "操作" },
+];
+
 export function OrdersPage() {
   const toast = useToast();
   const confirm = useConfirm();
@@ -37,6 +53,7 @@ export function OrdersPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [batchBusy, setBatchBusy] = useState(false);
   const debouncedKeyword = useDebouncedValue(keyword);
+  const cols = useColumnVisibility("jkp-cols-orders");
 
   /** 换页 / 换筛选后清空选择，避免「操作了看不见的订单」 */
 
@@ -224,7 +241,7 @@ export function OrdersPage() {
           { label: "订单总数", value: int(stats.data?.total ?? 0), unit: "笔", icon: "🧾" },
           { label: "已发货", value: int(stats.data?.shipped ?? 0), unit: "笔", icon: "✅" },
           { label: "成交金额", value: `¥${money(stats.data?.revenue ?? 0)}`, icon: "💰" },
-          { label: "待处理", value: int(stats.data?.pending ?? 0), unit: "笔", icon: "⏳" },
+          { label: "待付款", value: int(stats.data?.pending ?? 0), unit: "笔", icon: "⏳" },
         ]}
       />
 
@@ -246,11 +263,9 @@ export function OrdersPage() {
         >
           <option value="">全部状态</option>
           <option value="已发货">已发货</option>
-          <option value="处理中">处理中</option>
           <option value="待付款">待付款</option>
           <option value="已关闭">已关闭</option>
           <option value="已退款">已退款</option>
-          <option value="失败">失败</option>
         </select>
 
         <select className="select select-sm" aria-label="按支付方式筛选" value={pay} onChange={(e) => resetPage(setPay)(e.target.value)}>
@@ -259,6 +274,14 @@ export function OrdersPage() {
           <option value="alipay">支付宝</option>
           <option value="test">测试支付</option>
         </select>
+
+        <div className="spacer" />
+        <ColumnMenu
+          items={COLS}
+          visible={cols.visible}
+          onToggle={cols.toggle}
+          onShowAll={cols.showAll}
+        />
       </div>
 
       {/* 从客户详情跳过来时，说明清楚为什么列表只剩一笔 */}
@@ -276,7 +299,7 @@ export function OrdersPage() {
       )}
 
       {/* 选中后才出现的批量操作条 */}
-      {selectedNos.length > 0 && (
+      { selectedNos.length > 0 && (
         <div className="batch-bar">
           <span className="count">已选中 {selectedNos.length} 笔订单</span>
           <div className="spacer" />
@@ -317,17 +340,17 @@ export function OrdersPage() {
                     onChange={toggleAllOnPage}
                   />
                 </th>
-                <SortableTh label="订单号" field="no" sort={sort} onSort={setSort} />
-                <th>商品</th>
-                <th>联系方式</th>
-                <th>下单 IP</th>
-                <SortableTh label="金额" field="amount" sort={sort} onSort={setSort} />
-                <SortableTh label="数量" field="qty" sort={sort} onSort={setSort} />
-                <th>支付方式</th>
-                <SortableTh label="状态" field="status" sort={sort} onSort={setSort} />
-                <SortableTh label="下单时间" field="created" sort={sort} onSort={setSort} />
-                <SortableTh label="支付时间" field="paid" sort={sort} onSort={setSort} />
-                <th>操作</th>
+                {cols.visible("no") && <SortableTh label="订单号" field="no" sort={sort} onSort={setSort} />}
+                {cols.visible("product") && <th>商品</th>}
+                {cols.visible("contact") && <th>联系方式</th>}
+                {cols.visible("ip") && <th>下单 IP</th>}
+                {cols.visible("amount") && <SortableTh label="金额" field="amount" sort={sort} onSort={setSort} />}
+                {cols.visible("qty") && <SortableTh label="数量" field="qty" sort={sort} onSort={setSort} />}
+                {cols.visible("pay") && <th>支付方式</th>}
+                {cols.visible("status") && <SortableTh label="状态" field="status" sort={sort} onSort={setSort} />}
+                {cols.visible("created") && <SortableTh label="下单时间" field="created" sort={sort} onSort={setSort} />}
+                {cols.visible("paid") && <SortableTh label="支付时间" field="paid" sort={sort} onSort={setSort} />}
+                {cols.visible("actions") && <th>操作</th>}
               </tr>
             </thead>
             <tbody>
@@ -354,45 +377,51 @@ export function OrdersPage() {
                           onChange={() => toggleOne(o.no)}
                         />
                       </td>
-                      <td className="mono nowrap">{o.no}</td>
-                      <td>
-                        <div className="cell-main">
-                          <span className="cell-thumb">🧾</span>
-                          <div>
-                            <div className="t1">{o.product}</div>
-                            <div className="t2">
-                              {o.spec || "—"} × {o.qty}
+                      {cols.visible("no") && <td className="mono nowrap">{o.no}</td>}
+                      {cols.visible("product") && (
+                        <td>
+                          <div className="cell-main">
+                            <span className="cell-thumb">🧾</span>
+                            <div>
+                              <div className="t1">{o.product}</div>
+                              <div className="t2">
+                                {o.spec || "—"} × {o.qty}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="nowrap dim">{o.contact || "—"}</td>
-                      <td className="mono nowrap">{o.ip || <span className="dim">—</span>}</td>
-                      <td className="num nowrap">¥{money(o.amount)}</td>
-                      <td className="num nowrap">{o.qty}</td>
-                      <td className="nowrap">{o.pay}</td>
-                      <td>
-                        <StatusTag text={o.status} tone={orderStatusClass(o.status)} />
-                      </td>
-                      <td className="nowrap dim">{minutePart(o.time)}</td>
-                      <td className="nowrap dim">{o.paidAt ? minutePart(o.paidAt) : "—"}</td>
-                      <td>
-                        <div className="row-actions">
-                          <button onClick={() => void openDetail(o.no)}>详情</button>
-                          <span className="sep" />
-                          <button onClick={() => void resend(o)}>补发</button>
-                          <span className="sep" />
-                          {o.status === "待付款" ? (
-                            <button className="danger" onClick={() => void close(o)}>
-                              关闭
-                            </button>
-                          ) : (
-                            <button className="danger" onClick={() => void refund(o)}>
-                              退款
-                            </button>
-                          )}
-                        </div>
-                      </td>
+                        </td>
+                      )}
+                      {cols.visible("contact") && <td className="nowrap dim">{o.contact || "—"}</td>}
+                      {cols.visible("ip") && <td className="mono nowrap">{o.ip || <span className="dim">—</span>}</td>}
+                      {cols.visible("amount") && <td className="num nowrap">¥{money(o.amount)}</td>}
+                      {cols.visible("qty") && <td className="num nowrap">{o.qty}</td>}
+                      {cols.visible("pay") && <td className="nowrap">{o.pay}</td>}
+                      {cols.visible("status") && (
+                        <td>
+                          <StatusTag text={o.status} tone={orderStatusClass(o.status)} />
+                        </td>
+                      )}
+                      {cols.visible("created") && <td className="nowrap dim">{minutePart(o.time)}</td>}
+                      {cols.visible("paid") && <td className="nowrap dim">{o.paidAt ? minutePart(o.paidAt) : "—"}</td>}
+                      {cols.visible("actions") && (
+                        <td>
+                          <div className="row-actions">
+                            <button onClick={() => void openDetail(o.no)}>详情</button>
+                            <span className="sep" />
+                            <button onClick={() => void resend(o)}>补发</button>
+                            <span className="sep" />
+                            {o.status === "待付款" ? (
+                              <button className="danger" onClick={() => void close(o)}>
+                                关闭
+                              </button>
+                            ) : (
+                              <button className="danger" onClick={() => void refund(o)}>
+                                退款
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}

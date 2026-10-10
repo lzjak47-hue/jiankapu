@@ -195,3 +195,21 @@ export function useLocalStorage<T>(key: string, initial: T) {
 
   return [value, setValue] as const;
 }
+
+/* ============================================================ 列表列显隐 */
+
+/**
+ * 表格列显隐偏好：按 storageKey 持久化到 localStorage（每个列表页独立）。
+ * 返回的 visible(key) 控制每列是否渲染。
+ */
+export function useColumnVisibility(storageKey: string) {
+  const [hidden, setHidden] = useLocalStorage<string[]>(storageKey, []);
+  const hiddenSet = new Set(hidden);
+
+  const visible = (key: string) => !hiddenSet.has(key);
+  const toggle = (key: string) =>
+    setHidden((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+  const showAll = () => setHidden([]);
+
+  return { hidden, visible, toggle, showAll };
+}

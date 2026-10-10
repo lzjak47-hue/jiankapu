@@ -234,6 +234,30 @@
 
 /* ------------------------------------------------------------ 统计卡片 */
 
+/* 设置页关键字段的填写状态标记 */
+.field-label-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 7px;
+}
+.field-label-row > label {
+  margin-bottom: 0;
+}
+.fill-mark {
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--danger-weak);
+  color: var(--danger);
+}
+.fill-mark.is-filled {
+  background: var(--success-weak);
+  color: var(--success);
+}
+
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

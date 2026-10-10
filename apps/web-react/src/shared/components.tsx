@@ -3,10 +3,68 @@
  * ---------------------------------------------------------------------------
  * 只放前台后台都要用的通用件；各自专属的组件放在 site/components 与 admin/components。
  */
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { cx } from "./format";
 import { cycleSort, sortDirOf } from "./sort";
+
+/* ============================================================ 列表列设置 */
+
+interface ColumnMenuProps {
+  items: Array<{ key: string; label: string }>;
+  visible: (key: string) => boolean;
+  onToggle: (key: string) => void;
+  onShowAll: () => void;
+}
+
+/**
+ * 列表页右上角的「列显示」按钮：勾选控制每列的显示 / 隐藏，
+ * 偏好由各页面存入 localStorage。列多的列表（订单等）靠它腾出空间。
+ */
+export function ColumnMenu({ items, visible, onToggle, onShowAll }: ColumnMenuProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="col-menu">
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        ☰ 列显示
+      </button>
+      {open && (
+        <>
+          <div className="col-menu-mask" onClick={() => setOpen(false)} />
+          <div className="col-menu-panel">
+            {items.map((item) => (
+              <label key={item.key} className="col-menu-item">
+                <input
+                  type="checkbox"
+                  checked={visible(item.key)}
+                  onChange={() => onToggle(item.key)}
+                />
+                <span>{item.label}</span>
+              </label>
+            ))}
+            <div className="col-menu-foot">
+              <button
+                type="button"
+                onClick={() => {
+                  onShowAll();
+                  setOpen(false);
+                }}
+              >
+                显示全部列
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 /* ================================================================ 弹窗 */
 

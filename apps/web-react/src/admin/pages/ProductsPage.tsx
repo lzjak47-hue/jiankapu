@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 简卡铺 · 商品管理
  * ---------------------------------------------------------------------------
  * 排序改成点表头：点一下升序、再点降序、第三次取消回到默认。
@@ -8,8 +8,9 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../shared/api";
 import { money, int, minutePart } from "../../shared/format";
-import { useAsync, useDebouncedValue } from "../../shared/hooks";
+import { useAsync, useDebouncedValue, useColumnVisibility } from "../../shared/hooks";
 import {
+  ColumnMenu,
   Pagination,
   SortableTh,
   StatusTag,
@@ -21,6 +22,18 @@ import { useConfirm } from "../../shared/ConfirmProvider";
 import type { Product } from "../../shared/types";
 
 const PER_PAGE = 8;
+
+/** 可用列；勾选状态持久化在 localStorage */
+const COLS = [
+  { key: "name", label: "商品" },
+  { key: "price", label: "售价" },
+  { key: "stock", label: "库存" },
+  { key: "sold", label: "已售" },
+  { key: "badge", label: "角标" },
+  { key: "status", label: "状态" },
+  { key: "created", label: "创建时间" },
+  { key: "actions", label: "操作" },
+];
 
 export function ProductsPage() {
   const toast = useToast();
@@ -36,6 +49,7 @@ export function ProductsPage() {
   const [busy, setBusy] = useState(false);
 
   const debouncedKeyword = useDebouncedValue(keyword);
+  const cols = useColumnVisibility("jkp-cols-products");
 
   const categories = useAsync((signal) => api.admin.categories(signal), []);
 
@@ -197,6 +211,12 @@ export function ProductsPage() {
         </select>
 
         <span className="result-count">{data ? `共 ${data.total} 件商品` : ""}</span>
+        <ColumnMenu
+          items={COLS}
+          visible={cols.visible}
+          onToggle={cols.toggle}
+          onShowAll={cols.showAll}
+        />
         <div className="spacer" />
         <Link className="btn btn-primary" to="/products/new">
           ＋ 新增商品
@@ -236,14 +256,14 @@ export function ProductsPage() {
                     onChange={toggleAllOnPage}
                   />
                 </th>
-                <SortableTh label="商品" field="name" sort={sort} onSort={setSort} />
-                <SortableTh label="售价" field="price" sort={sort} onSort={setSort} />
-                <SortableTh label="库存" field="stock" sort={sort} onSort={setSort} />
-                <SortableTh label="已售" field="sold" sort={sort} onSort={setSort} />
-                <th>角标</th>
-                <th>状态</th>
-                <SortableTh label="创建时间" field="created" sort={sort} onSort={setSort} />
-                <th>操作</th>
+                {cols.visible("name") && <SortableTh label="商品" field="name" sort={sort} onSort={setSort} />}
+                {cols.visible("price") && <SortableTh label="售价" field="price" sort={sort} onSort={setSort} />}
+                {cols.visible("stock") && <SortableTh label="库存" field="stock" sort={sort} onSort={setSort} />}
+                {cols.visible("sold") && <SortableTh label="已售" field="sold" sort={sort} onSort={setSort} />}
+                {cols.visible("badge") && <th>角标</th>}
+                {cols.visible("status") && <th>状态</th>}
+                {cols.visible("created") && <SortableTh label="创建时间" field="created" sort={sort} onSort={setSort} />}
+                {cols.visible("actions") && <th>操作</th>}
               </tr>
             </thead>
             <tbody>
@@ -267,6 +287,7 @@ export function ProductsPage() {
                           onChange={() => toggleOne(p.id)}
                         />
                       </td>
+                      {cols.visible("name") && (
                       <td>
                         <div className="cell-main">
                           <span className="cell-thumb">{p.emoji}</span>
@@ -278,6 +299,8 @@ export function ProductsPage() {
                           </div>
                         </div>
                       </td>
+                    )}
+                    {cols.visible("price") && (
                       <td className="num nowrap">
                         ¥{money(p.price)}
                         {p.oldPrice > 0 && (
@@ -286,6 +309,8 @@ export function ProductsPage() {
                           </div>
                         )}
                       </td>
+                    )}
+                    {cols.visible("stock") && (
                       <td className="num nowrap">
                         {p.stock > 0 ? int(p.stock) : <StatusTag text="售罄" />}
                         {low && (
@@ -294,7 +319,9 @@ export function ProductsPage() {
                           </div>
                         )}
                       </td>
-                      <td className="num nowrap">{int(p.sold)}</td>
+                    )}
+                    {cols.visible("sold") && <td className="num nowrap">{int(p.sold)}</td>}
+                    {cols.visible("badge") && (
                       <td>
                         {p.badge ? (
                           <span className="tag tag-accent">{p.badge}</span>
@@ -302,10 +329,14 @@ export function ProductsPage() {
                           <span className="dim">—</span>
                         )}
                       </td>
+                    )}
+                    {cols.visible("status") && (
                       <td>
                         <StatusTag text={p.status ? "已上架" : "已下架"} tone={p.status ? "on" : "off"} />
                       </td>
-                      <td className="nowrap dim">{minutePart(p.createdAt)}</td>
+                    )}
+                    {cols.visible("created") && <td className="nowrap dim">{minutePart(p.createdAt)}</td>}
+                    {cols.visible("actions") && (
                       <td>
                         <div className="row-actions">
                           <Link to={`/products/${p.id}`}>编辑</Link>
@@ -319,6 +350,7 @@ export function ProductsPage() {
                           </button>
                         </div>
                       </td>
+                    )}
                     </tr>
                   );
                 })}

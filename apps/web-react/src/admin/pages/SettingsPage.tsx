@@ -34,6 +34,7 @@ function TextField({
   type = "text",
   placeholder,
   disabled,
+  required = false,
 }: {
   id: string;
   label: string;
@@ -43,13 +44,24 @@ function TextField({
   type?: string;
   placeholder?: string;
   disabled?: boolean;
+  /** 关键字段：标签打星号；未填写时提示，填写后显示 ✓ */
+  required?: boolean;
 }) {
+  const filled = String(value ?? "").trim() !== "";
   return (
     <div className="field">
-      <label htmlFor={id}>{label}</label>
+      <div className="field-label-row">
+        <label htmlFor={id}>{label}</label>
+        {required && <span className="req">*</span>}
+        {required && (
+          <span className={`fill-mark${filled ? " is-filled" : ""}`}>
+            {filled ? "✓ 已填写" : "⚠ 尚未填写"}
+          </span>
+        )}
+      </div>
       <input
         id={id}
-        className="input"
+        className={`input${required && !filled ? " is-error" : ""}`}
         type={type}
         value={value}
         placeholder={placeholder}
@@ -255,6 +267,7 @@ export function SettingsPage() {
                   <TextField
                     id="s-name"
                     label="站点名称"
+                    required
                     value={form.site.name}
                     onChange={(v) => patchSite("name", v)}
                   />
@@ -734,6 +747,7 @@ export function SettingsPage() {
                       id="n-resend-key"
                       label="Resend API Key"
                       type="password"
+                      required
                       value={form.notify.resendKey}
                       onChange={(v) => patchNotify("resendKey", v)}
                       placeholder="re_ 开头，留空表示不修改"
@@ -753,6 +767,7 @@ export function SettingsPage() {
                       <TextField
                         id="n-smtp-host"
                         label="SMTP 服务器"
+                        required
                         value={form.notify.smtpHost}
                         onChange={(v) => patchNotify("smtpHost", v)}
                         placeholder="smtp.qq.com"
@@ -768,6 +783,7 @@ export function SettingsPage() {
                       <TextField
                         id="n-smtp-user"
                         label="邮箱账号"
+                        required
                         value={form.notify.smtpUser}
                         onChange={(v) => patchNotify("smtpUser", v)}
                         placeholder="noreply@example.com"
@@ -776,6 +792,7 @@ export function SettingsPage() {
                         id="n-smtp-pass"
                         label="密码 / 授权码"
                         type="password"
+                        required
                         value={form.notify.smtpPass}
                         onChange={(v) => patchNotify("smtpPass", v)}
                         placeholder="留空表示不修改"

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 简卡铺 · 卡密库存
  * ---------------------------------------------------------------------------
  * 卡密是按「商品 + 规格」管理的：同一个商品的不同规格各自持有独立的卡密池。
@@ -7,8 +7,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../shared/api";
 import { cardStatusClass, copyText, int, minutePart } from "../../shared/format";
-import { useAsync, useDebouncedValue } from "../../shared/hooks";
+import { useAsync, useDebouncedValue, useColumnVisibility } from "../../shared/hooks";
 import {
+  ColumnMenu,
   Modal,
   Pagination,
   SortableTh,
@@ -22,6 +23,18 @@ import { useConfirm } from "../../shared/ConfirmProvider";
 import type { Product } from "../../shared/types";
 
 const PER_PAGE = 10;
+
+/** 可用列；勾选状态持久化在 localStorage */
+const COLS = [
+  { key: "secret", label: "卡密" },
+  { key: "product", label: "所属商品" },
+  { key: "spec", label: "规格" },
+  { key: "status", label: "状态" },
+  { key: "imported", label: "导入时间" },
+  { key: "sold", label: "售出时间" },
+  { key: "order", label: "关联订单" },
+  { key: "actions", label: "操作" },
+];
 
 export function CardsPage() {
   const toast = useToast();
@@ -42,6 +55,7 @@ export function CardsPage() {
   const [importSpec, setImportSpec] = useState("");
   const [importText, setImportText] = useState("");
   const [importing, setImporting] = useState(false);
+  const cols = useColumnVisibility("jkp-cols-cards");
 
   /* 商品下拉用创建时间倒序，新建的商品排最前，方便导入时一眼选中 */
   const products = useAsync(
@@ -307,6 +321,13 @@ export function CardsPage() {
 
         <div className="spacer" />
 
+        <ColumnMenu
+          items={COLS}
+          visible={cols.visible}
+          onToggle={cols.toggle}
+          onShowAll={cols.showAll}
+        />
+
         {/* 用 <a> 直接下载，让浏览器处理文件名与保存位置 */}
         <a className="btn btn-ghost" href={exportUrl} download>
           ⬇ 导出 CSV
@@ -367,14 +388,14 @@ export function CardsPage() {
                     onChange={toggleAll}
                   />
                 </th>
-                <SortableTh label="卡密" field="secret" sort={sort} onSort={setSort} />
-                <th>所属商品</th>
-                <SortableTh label="规格" field="spec" sort={sort} onSort={setSort} />
-                <SortableTh label="状态" field="status" sort={sort} onSort={setSort} />
-                <SortableTh label="导入时间" field="imported" sort={sort} onSort={setSort} />
-                <SortableTh label="售出时间" field="sold" sort={sort} onSort={setSort} />
-                <th>关联订单</th>
-                <th>操作</th>
+                {cols.visible("secret") && <SortableTh label="卡密" field="secret" sort={sort} onSort={setSort} />}
+                {cols.visible("product") && <th>所属商品</th>}
+                {cols.visible("spec") && <SortableTh label="规格" field="spec" sort={sort} onSort={setSort} />}
+                {cols.visible("status") && <SortableTh label="状态" field="status" sort={sort} onSort={setSort} />}
+                {cols.visible("imported") && <SortableTh label="导入时间" field="imported" sort={sort} onSort={setSort} />}
+                {cols.visible("sold") && <SortableTh label="售出时间" field="sold" sort={sort} onSort={setSort} />}
+                {cols.visible("order") && <th>关联订单</th>}
+                {cols.visible("actions") && <th>操作</th>}
               </tr>
             </thead>
             <tbody>
@@ -401,37 +422,45 @@ export function CardsPage() {
                           onChange={() => toggleOne(c.id)}
                         />
                       </td>
-                      <td className="mono nowrap">{c.key}</td>
-                      <td className="nowrap">{c.productName || c.product}</td>
-                      <td className="nowrap">
-                        {c.spec ? <span className="tag">{c.spec}</span> : <span className="dim">—</span>}
-                      </td>
-                      <td>
-                        <StatusTag text={c.status} tone={cardStatusClass(c.status)} />
-                      </td>
-                      <td className="nowrap dim">{minutePart(c.importedAt)}</td>
-                      <td className="nowrap dim">{c.soldAt ? minutePart(c.soldAt) : "—"}</td>
-                      <td className="nowrap">
-                        {c.order ? <span className="mono">{c.order}</span> : <span className="dim">—</span>}
-                      </td>
-                      <td>
-                        <div className="row-actions">
-                          <button
-                            onClick={() => {
-                              void copyText(c.key).then((ok) => {
-                                if (ok) toast.success("卡密已复制");
-                                else toast.warn("复制失败，请手动选择");
-                              });
-                            }}
-                          >
-                            复制
-                          </button>
-                          <span className="sep" />
-                          <button className="danger" disabled={sold} onClick={() => void removeCard(c)}>
-                            删除
-                          </button>
-                        </div>
-                      </td>
+                      {cols.visible("secret") && <td className="mono nowrap">{c.key}</td>}
+                      {cols.visible("product") && <td className="nowrap">{c.productName || c.product}</td>}
+                      {cols.visible("spec") && (
+                        <td className="nowrap">
+                          {c.spec ? <span className="tag">{c.spec}</span> : <span className="dim">—</span>}
+                        </td>
+                      )}
+                      {cols.visible("status") && (
+                        <td>
+                          <StatusTag text={c.status} tone={cardStatusClass(c.status)} />
+                        </td>
+                      )}
+                      {cols.visible("imported") && <td className="nowrap dim">{minutePart(c.importedAt)}</td>}
+                      {cols.visible("sold") && <td className="nowrap dim">{c.soldAt ? minutePart(c.soldAt) : "—"}</td>}
+                      {cols.visible("order") && (
+                        <td className="nowrap">
+                          {c.order ? <span className="mono">{c.order}</span> : <span className="dim">—</span>}
+                        </td>
+                      )}
+                      {cols.visible("actions") && (
+                        <td>
+                          <div className="row-actions">
+                            <button
+                              onClick={() => {
+                                void copyText(c.key).then((ok) => {
+                                  if (ok) toast.success("卡密已复制");
+                                  else toast.warn("复制失败，请手动选择");
+                                });
+                              }}
+                            >
+                              复制
+                            </button>
+                            <span className="sep" />
+                            <button className="danger" disabled={sold} onClick={() => void removeCard(c)}>
+                              删除
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
