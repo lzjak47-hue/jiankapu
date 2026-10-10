@@ -29,9 +29,16 @@ const host = process.env.HOST || "127.0.0.1";
  * 优先使用 DATABASE_URL，否则用 PG* 系列变量，最后回落到本地开发默认值。
  *
  * ⚠️ 生产环境请务必通过环境变量注入，不要把密码写进代码仓库。
+ * 外部托管数据库（如 Supabase/Neon，连接串不含 localhost）默认走 SSL 加密。
  */
-const dbConfig = process.env.DATABASE_URL
-  ? { connectionString: process.env.DATABASE_URL }
+const connectionString = process.env.DATABASE_URL;
+const dbConfig = connectionString
+  ? {
+      connectionString,
+      ssl: /localhost|127\.0\.0\.1/.test(connectionString)
+        ? undefined
+        : { rejectUnauthorized: false },
+    }
   : {
       host: process.env.PGHOST || "127.0.0.1",
       port: Number(process.env.PGPORT || 5432),
