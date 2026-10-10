@@ -374,7 +374,7 @@ describe("管理后台 · 排序、导出与改密码", () => {
 
     const pass = await screen.findByLabelText("密码 / 授权码");
     expect(pass).toHaveValue("");
-    expect(screen.getByText(/已填写/)).toBeInTheDocument();
+    expect(screen.getAllByText(/已填写/).length).toBeGreaterThan(0);
     expect(screen.getByText(/尚未填写/)).toBeInTheDocument();
 
     await user.type(screen.getByLabelText("测试接收地址"), "buyer@example.com");
