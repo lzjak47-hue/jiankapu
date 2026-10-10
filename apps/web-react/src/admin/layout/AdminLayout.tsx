@@ -37,7 +37,7 @@ const NAV: NavGroup[] = [
     items: [
       { to: "/products", label: "商品管理", icon: "📦", title: "商品管理", sub: "上架、改价、补库存都在这里" },
       { to: "/categories", label: "分类管理", icon: "🗂️", title: "分类管理", sub: "分类决定前台商品列表的筛选标签" },
-      { to: "/cards", label: "卡密库存", icon: "🔑", title: "卡密库存", sub: "批量导入卡密，实时掌握可用库存" },
+      { to: "/cards", label: "卡密管理", icon: "🔑", title: "卡密管理", sub: "批量导入卡密，实时掌握可用库存" },
     ],
   },
   {

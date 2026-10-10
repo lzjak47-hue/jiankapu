@@ -267,7 +267,7 @@ describe("管理后台 · 排序、导出与改密码", () => {
     expect(priceHeader).toHaveAttribute("aria-sort", "none");
   });
 
-  it("卡密库存的导出链接带着当前筛选条件", async () => {
+  it("卡密管理的导出链接带着当前筛选条件", async () => {
     window.history.pushState({}, "", "/cards");
     mock = installFetchMock([
       { match: "/api/admin/me", data: { admin: demoAdmin } },

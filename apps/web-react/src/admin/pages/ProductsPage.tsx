@@ -375,7 +375,7 @@ export function ProductsPage() {
         点击表头可以排序：一下升序、再一下降序、第三下取消。
         <br />
         库存为 0 的商品在前台会自动显示「已售罄」并禁用购买按钮。补充库存请到{" "}
-        <Link to="/cards">卡密库存</Link> 页面导入卡密。
+        <Link to="/cards">卡密管理</Link> 页面导入卡密。
       </p>
     </>
   );
