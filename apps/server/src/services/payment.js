@@ -19,7 +19,6 @@ import * as settingsService from "./settings.js";
 export const CHANNELS = {
   wechat: { code: "wechat", label: "微信支付", icon: "wx" },
   alipay: { code: "alipay", label: "支付宝", icon: "ali" },
-  test: { code: "test", label: "测试支付", icon: "test" },
 };
 
 export const CHANNEL_CODES = Object.keys(CHANNELS);
@@ -31,13 +30,13 @@ export const labelOf = (code) => CHANNELS[code]?.label ?? code;
 /**
  * 把历史数据里的中文标签映射回渠道码。
  * 老订单存的 pay_method 是「微信支付」「支付宝」这类中文，迁移时要用。
+ * 历史「测试支付」订单不再有对应渠道，回落为空串（不当作合法渠道）。
  */
 export function channelFromLabel(label) {
   const text = String(label ?? "").trim();
   if (text === "微信支付") return "wechat";
   if (text === "支付宝") return "alipay";
-  if (text === "测试支付") return "test";
-  return CHANNEL_CODES.includes(text) ? text : "test";
+  return CHANNEL_CODES.includes(text) ? text : "";
 }
 
 /* ------------------------------------------------------------ 通知地址 */
@@ -72,16 +71,6 @@ export async function createPayment(order, channel) {
   }
 
   const subject = `${order.product_name}${order.spec ? ` ${order.spec}` : ""} × ${order.qty}`;
-
-  /* 测试渠道不联外网，前台直接用「模拟支付成功」按钮 */
-  if (channel === "test") {
-    return {
-      channel,
-      label: labelOf(channel),
-      qrCode: "",
-      mode: "test",
-    };
-  }
 
   /* 二维码有效期与本地关单时间保持一致，
      否则用户在本地订单关闭后仍能付款，变成「收了钱没有订单」。 */
@@ -185,7 +174,6 @@ export async function queryPayment(order) {
   const channel = order.pay_channel || channelFromLabel(order.pay_method);
   const miss = { paid: false, closed: false, paidAmount: 0, detail: "" };
 
-  if (channel === "test") return { ...miss, detail: "测试渠道无需查单" };
   if (!settingsService.availableChannels()[channel]) {
     return { ...miss, detail: "渠道未启用或未配置" };
   }

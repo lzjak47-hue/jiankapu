@@ -148,10 +148,6 @@ export const api = {
     getOrder: (no: string, signal?: AbortSignal) =>
       request<PublicOrder>(`/api/public/orders/${encodeURIComponent(no)}`, { signal }),
 
-    /** 演示用「支付成功」入口 */
-    payOrder: (no: string) =>
-      request<PublicOrder>(`/api/public/orders/${encodeURIComponent(no)}/pay`, { method: "POST" }),
-
     cancelOrder: (no: string) =>
       request<{ no: string; status: string }>(
         `/api/public/orders/${encodeURIComponent(no)}/cancel`,

@@ -621,30 +621,9 @@ export function SettingsPage() {
                   />
                 </div>
 
-                {/* ---------------- 测试支付 ---------------- */}
-                <div className="form-section-title" style={{ marginTop: 32 }}>
-                  <span className="idx">3</span> 本地测试支付
-                  <ChannelBadge status={form.payment.channelStatus?.test} />
-                </div>
-
-                <SwitchRow
-                  title="启用测试支付"
-                  desc="不联外网、不产生真实交易，点一下即视为支付成功。适合本地跑通全流程。"
-                  checked={form.payment.testEnable === 1}
-                  onChange={(next) => patchPayment("testEnable", next ? 1 : 0)}
-                />
-
-                <div className="notice mt-16" style={{ background: "var(--warning-weak)" }}>
-                  <span>⚠️</span>
-                  <span>
-                    <strong>正式上线前请关闭测试支付</strong>，否则任何人都能免费领卡。
-                    三个渠道全部关闭时设置无法保存。
-                  </span>
-                </div>
-
                 {/* ---------------- 通用 ---------------- */}
                 <div className="form-section-title" style={{ marginTop: 32 }}>
-                  <span className="idx">4</span> 通用
+                  <span className="idx">3</span> 通用
                 </div>
 
                 <div className="form-grid">
@@ -1125,11 +1104,6 @@ export function SettingsPage() {
                     checked={form.security.loginFailLock === 1}
                     onChange={(next) => patchSecurity("loginFailLock", next ? 1 : 0)}
                   />
-                </div>
-
-                <div className="notice mt-16">
-                  <span>🔐</span>
-                  <span>首次部署请立即修改默认管理员密码（当前演示账号 admin / 123456）。</span>
                 </div>
               </div>
             </section>

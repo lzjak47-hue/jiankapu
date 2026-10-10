@@ -327,20 +327,9 @@ export async function create(payload, ip = "") {
 /**
  * 标记订单已支付并发货（幂等：已发货的订单直接返回原卡密）
  */
-export async function markPaid(orderNo, { ip = "", actor = "system", requireTestChannel = false } = {}) {
+export async function markPaid(orderNo, { ip = "", actor = "system" } = {}) {
   const order = await findRowByNo(orderNo);
   if (!order) throw notFound("订单不存在");
-
-  /* 非测试渠道必须由「验签通过的回调」或「主动查单确认已支付」来驱动，
-     绝不能让前台凭一个订单号就把订单标记成已付 —— 那等于免费发卡。 */
-  if (requireTestChannel) {
-    const channel = order.pay_channel || paymentService.channelFromLabel(order.pay_method);
-    if (channel !== "test") {
-      throw conflict(
-        `${paymentService.labelOf(channel)}订单需要完成真实支付，不能手动确认`
-      );
-    }
-  }
 
   if (PAID_STATUSES.includes(order.status)) {
     return toPublic(order, { secrets: await cardService.secretsForOrder(order.id) });

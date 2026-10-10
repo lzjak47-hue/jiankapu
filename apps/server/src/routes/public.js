@@ -184,20 +184,6 @@ export function registerPublicRoutes(router) {
     ok(ctx.res, decorate(order));
   });
 
-  /**
-   * 测试渠道的「模拟支付成功」入口。
-   * 真实渠道会被 orderService.markPaid 拒绝（requireTestChannel）。
-   */
-  router.post("/api/public/orders/:no/pay", async (ctx) => {
-    const no = str(ctx.params.no, { field: "订单号", max: 40 });
-    const order = await orderService.markPaid(no, {
-      ip: ctx.ip,
-      actor: "测试支付",
-      requireTestChannel: true,
-    });
-    ok(ctx.res, decorate(order));
-  });
-
   /* 主动关闭未支付订单（用户点「取消订单」） */
   router.post("/api/public/orders/:no/cancel", async (ctx) => {
     const no = str(ctx.params.no, { field: "订单号", max: 40 });

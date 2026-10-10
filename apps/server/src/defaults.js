@@ -52,7 +52,7 @@ export const DEFAULT_SETTINGS = {
   "payment.aliGateway": "https://openapi.alipay.com/gateway.do",
 
   /* 本地测试支付：不联外网，点一下就成功，方便自己跑通全流程 */
-  "payment.testEnable": "1",
+  "payment.testEnable": "0",
   "payment.testAutoPay": "0",
 
   "payment.qrExpireMinutes": "15",

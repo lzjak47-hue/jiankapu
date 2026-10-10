@@ -24,7 +24,7 @@ const MAX_QTY = 50;
 const CHANNEL_META: Record<PayChannel, { label: string; icon: string; cls: string; hint: string }> = {
   wechat: { label: "微信支付", icon: "💬", cls: "wx", hint: "打开微信扫一扫" },
   alipay: { label: "支付宝", icon: "🅰️", cls: "ali", hint: "打开支付宝扫一扫" },
-  test: { label: "测试支付", icon: "🧪", cls: "test", hint: "本地测试用，点一下直接成功" },
+  test: { label: "测试支付", icon: "🧪", cls: "test", hint: "测试渠道已下线" },
 };
 
 interface BuyModalProps {
@@ -74,7 +74,7 @@ export function BuyModal({ product, onClose, initialSpec, initialQty = 1 }: BuyM
   const [contact, setContact] = useState("");
   /* 默认选第一个可用的渠道，别一上来就停在「暂不可用」的那个上 */
   const [channel, setChannel] = useState<PayChannel>(
-    () => channels.find((c) => channelReady[c] !== false) ?? channels[0] ?? "test"
+    () => channels.find((c) => channelReady[c] !== false) ?? channels[0] ?? "wechat"
   );
   const [busy, setBusy] = useState(false);
   const [order, setOrder] = useState<PublicOrder | null>(null);
@@ -174,23 +174,6 @@ export function BuyModal({ product, onClose, initialSpec, initialQty = 1 }: BuyM
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "下单失败，请重试");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  /** 测试渠道专用：直接确认支付成功 */
-  async function confirmTestPaid() {
-    if (!order || busy) return;
-    setBusy(true);
-    try {
-      const paid = await api.public.payOrder(order.no);
-      setOrder(paid);
-      setSecrets(paid.secrets);
-      setStep(3);
-      void refreshProducts();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "支付确认失败");
     } finally {
       setBusy(false);
     }
@@ -427,41 +410,6 @@ export function BuyModal({ product, onClose, initialSpec, initialQty = 1 }: BuyM
               </div>
               <button className="btn btn-primary btn-lg btn-block" disabled={busy} onClick={() => void createOrder()}>
                 {busy ? "重试中…" : "重新获取付款码"}
-              </button>
-              <button className="btn btn-ghost btn-block mt-12" disabled={busy} onClick={cancelOrder}>
-                取消订单
-              </button>
-            </>
-          ) : order.payment?.mode === "test" ? (
-            /* 测试渠道：不需要扫码 */
-            <>
-              <div className="success-box">
-                <div className="success-ico" style={{ background: "var(--primary-weak)", color: "var(--primary)" }}>
-                  🧪
-                </div>
-                <h3 className="h3">测试支付</h3>
-                <p className="small dim mt-8">
-                  这是本地测试渠道，不会真的扣款。点下方按钮即视为支付成功。
-                </p>
-              </div>
-
-              <div className="summary mt-16">
-                <div className="summary-row">
-                  <span className="k">订单号</span>
-                  <span className="v mono">{order.no}</span>
-                </div>
-                <div className="summary-row total">
-                  <span className="k">应付金额</span>
-                  <span className="v">¥{money(order.amount)}</span>
-                </div>
-              </div>
-
-              <button
-                className="btn btn-primary btn-lg btn-block mt-24"
-                disabled={busy}
-                onClick={() => void confirmTestPaid()}
-              >
-                {busy ? "处理中…" : "模拟支付成功"}
               </button>
               <button className="btn btn-ghost btn-block mt-12" disabled={busy} onClick={cancelOrder}>
                 取消订单

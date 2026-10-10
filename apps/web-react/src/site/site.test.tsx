@@ -84,7 +84,8 @@ describe("前台商城", () => {
       { match: "/api/public/bootstrap", data: demoBootstrap },
       { match: "/api/public/stats", data: { totalOrders: 0, shippedOrders: 0, soldCards: 0, products: 2 } },
       { match: "/api/public/orders", method: "POST", data: demoOrder },
-      { match: `/api/public/orders/${demoOrder.no}/pay`, method: "POST", data: demoPaidOrder },
+      /* 下单后轮询订单状态：返回已发货，模拟「用户已扫码支付完成」 */
+      { match: `/api/public/orders/${demoOrder.no}`, data: demoPaidOrder },
     ]);
 
     const user = userEvent.setup();
@@ -104,7 +105,7 @@ describe("前台商城", () => {
     await user.click(screen.getByRole("button", { name: "去支付" }));
     expect(await screen.findByText("选择支付方式")).toBeInTheDocument();
 
-    /* 创建订单 —— 断言提交体正确 */
+    /* 创建订单 —— 断言提交体正确（含所选支付渠道） */
     await user.click(screen.getByRole("button", { name: /确认支付/ }));
 
     const createCall = mock.calls.find(
@@ -116,14 +117,15 @@ describe("前台商城", () => {
       spec: "月卡",
       qty: 1,
       contact: "13800001111",
-      payChannel: "test",
+      payChannel: "wechat",
     });
 
-    /* 测试渠道：不扫码，点「模拟支付成功」 */
-    expect(await screen.findByText("测试支付")).toBeInTheDocument();
-    expect(screen.getByText(demoOrder.no)).toBeInTheDocument();
+    /* 真实渠道：进入扫码支付步骤，显示微信支付 */
+    expect(await screen.findByText("微信支付")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "我已完成支付" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "模拟支付成功" }));
+    /* 点「我已完成支付」触发轮询查单，拿到已发货的卡密 */
+    await user.click(screen.getByRole("button", { name: "我已完成支付" }));
 
     expect(await screen.findByText("支付成功，卡密已发货")).toBeInTheDocument();
     expect(screen.getByText("AIQY-8F3K-2M9D-77QX")).toBeInTheDocument();
@@ -176,7 +178,7 @@ describe("前台商城", () => {
       { match: "/api/public/bootstrap", data: demoBootstrap },
       { match: "/api/public/stats", data: { totalOrders: 0, shippedOrders: 0, soldCards: 0, products: 2 } },
       { match: "/api/public/orders", method: "POST", data: demoOrder },
-      { match: `/api/public/orders/${demoOrder.no}/pay`, method: "POST", data: demoPaidOrder },
+      { match: `/api/public/orders/${demoOrder.no}`, data: demoPaidOrder },
     ]);
 
     const user = userEvent.setup();
@@ -204,10 +206,10 @@ describe("前台商城", () => {
         payment: {
           wxEnable: 1,
           aliEnable: 1,
-          testEnable: 1,
-          channels: ["wechat", "alipay", "test"] as const,
+          testEnable: 0,
+          channels: ["wechat", "alipay"] as const,
           /* 微信还没填密钥 */
-          channelReady: { wechat: false, alipay: true, test: true },
+          channelReady: { wechat: false, alipay: true },
           qrExpireMinutes: 15,
         },
       },
@@ -227,18 +229,16 @@ describe("前台商城", () => {
     await user.type(within(dialog).getByLabelText(/联系方式/), "13800001111");
     await user.click(within(dialog).getByRole("button", { name: "去支付" }));
 
-    /* 三种都显示出来 —— 「后台开了前台却看不到」才是最难排查的问题 */
+    /* 两种都显示出来 —— 「后台开了前台却看不到」才是最难排查的问题 */
     const wechat = await within(dialog).findByRole("button", { name: /微信支付/ });
     const alipay = within(dialog).getByRole("button", { name: /支付宝/ });
-    const test = within(dialog).getByRole("button", { name: /测试支付/ });
 
     /* 没配好的那个：显示但点不了，并标出来 */
     expect(wechat).toBeDisabled();
     expect(within(wechat).getByText("暂不可用")).toBeInTheDocument();
 
-    /* 配好的两个可以正常选 */
+    /* 配好的可以正常选 */
     expect(alipay).toBeEnabled();
-    expect(test).toBeEnabled();
 
     /* 默认不该停在不可用的那个上 —— 默认选第一个可用的（支付宝） */
     expect(alipay).toHaveClass("is-active");

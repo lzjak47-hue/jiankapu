@@ -272,7 +272,6 @@ export function OrdersPage() {
           <option value="">全部支付方式</option>
           <option value="wechat">微信支付</option>
           <option value="alipay">支付宝</option>
-          <option value="test">测试支付</option>
         </select>
 
         <div className="spacer" />

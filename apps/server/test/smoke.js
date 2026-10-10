@@ -231,45 +231,11 @@ try {
   });
 
   /* -------------------------------------------------------------- 下单 */
-  section("下单 → 支付 → 发货");
+  section("下单参数校验");
 
-  const stockBefore = Number(await scalar("SELECT stock FROM products WHERE id = 'p001'"));
-  let orderNo = "";
-
-  await test("创建订单成功并锁定卡密", async () => {
-    const { status, json } = await api("/api/public/orders", {
-      method: "POST",
-      body: { productId: "p001", spec: "月卡", qty: 2, contact: "tester@example.com", payChannel: "test" },
-    });
-    assert.equal(status, 200, JSON.stringify(json));
-    orderNo = json.data.no;
-    assert.ok(/^JKP\d{13}$/.test(orderNo), `订单号格式异常: ${orderNo}`);
-    assert.equal(json.data.status, "待付款");
-    assert.equal(json.data.amount, 25.6);
-    assert.ok(json.data.remainSeconds > 0, "应有支付倒计时");
-    assert.ok(json.data.payUrl.includes(orderNo), "应返回支付链接");
-  });
-
-  await test("下单后可用库存减少 2", async () => {
-    const after = Number(await scalar("SELECT stock FROM products WHERE id = 'p001'"));
-    assert.equal(after, stockBefore - 2, `库存 ${stockBefore} → ${after}`);
-  });
-
-  await test("锁定中的卡密状态为「已锁定」", async () => {
-    assert.equal(Number(await scalar("SELECT COUNT(*) AS c FROM cards WHERE status = '已锁定'")), 2);
-  });
-
-  await test("未支付时订单不返回卡密", async () => {
-    const { json } = await api(`/api/public/orders/${orderNo}`);
-    assert.equal(json.data.status, "待付款");
-    assert.equal(json.data.secrets.length, 0);
-  });
-
-  await test("测试渠道不下发二维码（本来就不需要扫码）", async () => {
-    const data = (await api(`/api/public/orders/${orderNo}`)).json.data;
-    assert.equal(data.payChannel, "test");
-    assert.equal(data.qrSvg, "", "测试渠道不该有付款码");
-    assert.equal(data.qrPayload, "");
+  await test("本地测试支付接口已下线：POST /orders/:no/pay 返回 404", async () => {
+    const { status } = await api("/api/public/orders/JKP20260101001/pay", { method: "POST" });
+    assert.equal(status, 404, "手动确认支付的路由应已移除");
   });
 
   await test("付款码能渲染成合规的 SVG 二维码", () => {
@@ -285,58 +251,6 @@ try {
     assert.ok(svg.includes('fill="#FFFFFF"'), "底色应为白色");
   });
 
-  await test("payUrl 指向的查单页真实可访问（不能是 404）", async () => {
-    const data = (await api(`/api/public/orders/${orderNo}`)).json.data;
-    assert.ok(data.payUrl, "应返回 payUrl");
-
-    const path = new URL(data.payUrl).pathname + new URL(data.payUrl).search;
-    assert.equal(path.split("?")[0], "/query", `查单链接路径应为 /query，实际 ${path}`);
-
-    /* 关键：真的去请求一次。这是 SPA 迁移最容易漏掉的一环——
-       链接指向 /query.html 时带扩展名不会触发 SPA 回退，点开就是 404。 */
-    const res = await api(path, { raw: true });
-    assert.equal(res.status, 200, `查单地址应可访问，实际 ${res.status}：${path}`);
-    const html = await res.text();
-    assert.ok(html.includes('id="root"'), "查单地址应返回前台 SPA 入口");
-  });
-
-  let secrets = [];
-  await test("支付成功后订单变为已发货并给出卡密", async () => {
-    const { status, json } = await api(`/api/public/orders/${orderNo}/pay`, { method: "POST" });
-    assert.equal(status, 200, JSON.stringify(json));
-    assert.equal(json.data.status, "已发货");
-    secrets = json.data.secrets;
-    assert.equal(secrets.length, 2, "应发放 2 条卡密");
-    assert.ok(secrets[0].length > 10, "卡密内容不应为空");
-  });
-
-  await test("重复支付是幂等的，返回同一批卡密", async () => {
-    const { json } = await api(`/api/public/orders/${orderNo}/pay`, { method: "POST" });
-    assert.deepEqual(json.data.secrets, secrets, "重复支付不应换发卡密");
-  });
-
-  await test("已发货订单不再下发二维码", async () => {
-    const { json } = await api(`/api/public/orders/${orderNo}`);
-    assert.equal(json.data.qrSvg, "");
-  });
-
-  await test("卡密已标记为已售", async () => {
-    const sold = Number(await scalar("SELECT COUNT(*) AS c FROM cards WHERE status = '已售' AND product_id = 'p001'"));
-    assert.ok(sold >= 2, `p001 已售卡密应 >= 2，实际 ${sold}`);
-  });
-
-  await test("商品销量累加 2", async () => {
-    const sold = Number(await scalar("SELECT sold FROM products WHERE id = 'p001'"));
-    const base = bootstrap.products.find((p) => p.id === "p001").sold;
-    assert.equal(sold, base + 2, `销量应为 ${base + 2}，实际 ${sold}`);
-  });
-
-  await test("凭订单号可查到卡密", async () => {
-    const { json } = await api(`/api/public/orders/query?keyword=${orderNo}`);
-    assert.equal(json.data.total, 1);
-    assert.deepEqual(json.data.orders[0].secrets, secrets);
-  });
-
   await test("固定演示订单可查到", async () => {
     const { json } = await api("/api/public/orders/query?keyword=JKP20260101001");
     assert.equal(json.data.total, 1);
@@ -348,7 +262,7 @@ try {
       method: "POST",
       body: {
         productId: "not-exist", qty: 1,
-        contact: "tester@example.com", payChannel: "test",
+        contact: "tester@example.com", payChannel: "wechat",
       },
     });
     assert.equal(status, 404);
@@ -357,7 +271,7 @@ try {
   await test("数量非法被拒绝", async () => {
     const { status } = await api("/api/public/orders", {
       method: "POST",
-      body: { productId: "p001", qty: 99999, contact: "tester@example.com", payChannel: "test" },
+      body: { productId: "p001", qty: 99999, contact: "tester@example.com", payChannel: "wechat" },
     });
     assert.equal(status, 400);
   });
@@ -367,7 +281,7 @@ try {
       method: "POST",
       body: {
         productId: "p001", spec: "十年卡", qty: 1,
-        contact: "tester@example.com", payChannel: "test",
+        contact: "tester@example.com", payChannel: "wechat",
       },
     });
     assert.equal(status, 409);
@@ -376,26 +290,9 @@ try {
   await test("售罄商品无法下单", async () => {
     const { status } = await api("/api/public/orders", {
       method: "POST",
-      body: { productId: "p004", qty: 1, contact: "tester@example.com", payChannel: "test" },
+      body: { productId: "p004", qty: 1, contact: "tester@example.com", payChannel: "wechat" },
     });
     assert.equal(status, 409);
-  });
-
-  await test("取消未支付订单会释放卡密", async () => {
-    const created = await api("/api/public/orders", {
-      method: "POST",
-      body: { productId: "p002", spec: "月卡", qty: 1, contact: "cancel@example.com", payChannel: "test" },
-    });
-    assert.equal(created.status, 200, `下单失败：${JSON.stringify(created.json)}`);
-    const no = created.json.data.no;
-    const locked = Number(await scalar("SELECT stock FROM products WHERE id = 'p002'"));
-
-    const cancel = await api(`/api/public/orders/${no}/cancel`, { method: "POST" });
-    assert.equal(cancel.status, 200);
-
-    const after = Number(await scalar("SELECT stock FROM products WHERE id = 'p002'"));
-    assert.equal(after, locked + 1, "取消后卡密应回到库存池");
-    assert.equal(Number(await scalar("SELECT COUNT(*) AS c FROM cards WHERE status = '已锁定'")), 0);
   });
 
   /* -------------------------------------------------------- 后台认证 */
@@ -693,86 +590,6 @@ try {
     assert.equal(sum, json.data.stock, "各规格库存之和应等于商品总库存");
   });
 
-  await test("【关键】买月卡只会发月卡的卡密，不会串成其它规格", async () => {
-    /* 造一个干净的商品：两个规格，各导入可识别的卡密 */
-    const pid = "smoke-spec";
-    const specs = ["月卡", "年卡"];
-
-    await api("/api/admin/products", {
-      method: "POST", auth: true,
-      body: {
-        id: pid, name: "规格隔离测试商品", category: "video", emoji: "🧪",
-        price: 10, oldPrice: 0, badge: "", status: 1, specs,
-        desc: "", detail: "", notice: [], tutorial: [],
-      },
-    });
-
-    for (const spec of specs) {
-      const { status } = await api("/api/admin/cards/import", {
-        method: "POST", auth: true,
-        body: {
-          productId: pid,
-          spec,
-          text: `${spec === "月卡" ? "MONTHLY" : "YEARLY"}-KEY-1\n${spec === "月卡" ? "MONTHLY" : "YEARLY"}-KEY-2`,
-        },
-      });
-      assert.equal(status, 200);
-    }
-
-    /* 买月卡 */
-    const created = await api("/api/public/orders", {
-      method: "POST",
-      body: { productId: pid, spec: "月卡", qty: 1, contact: "13800000000", payChannel: "test" },
-    });
-    assert.equal(created.status, 200, JSON.stringify(created.json));
-
-    const paid = await api(`/api/public/orders/${created.json.data.no}/pay`, { method: "POST" });
-    assert.equal(paid.status, 200, JSON.stringify(paid.json));
-
-    const secret = paid.json.data.secrets[0];
-    assert.ok(
-      String(secret).startsWith("MONTHLY"),
-      `买月卡应发月卡卡密，实际发的是：${secret}`
-    );
-
-    /* 数据库层再确认一次：这张卡密确实挂在「月卡」规格下 */
-    const row = await get("SELECT spec FROM cards WHERE secret = ?", secret);
-    assert.equal(row.spec, "月卡");
-
-    /* 年卡的库存不能被月卡的订单动到 */
-    const yearlyLeft = Number(
-      await scalar("SELECT COUNT(*) AS c FROM cards WHERE product_id=? AND spec='年卡' AND status='未售'", pid)
-    );
-    assert.equal(yearlyLeft, 2, "买月卡不应消耗年卡的库存");
-
-    /* 月卡只剩 1 条，买 2 条必须失败（不能去动年卡的库存） */
-    const rest = await api("/api/public/orders", {
-      method: "POST",
-      body: { productId: pid, spec: "月卡", qty: 2, contact: "13800000000", payChannel: "test" },
-    });
-    assert.equal(rest.status, 409, "月卡只剩 1 条，买 2 条应失败");
-  });
-
-  await test("某个规格售罄时只拒绝该规格，其它规格照常可买", async () => {
-    const pid = "smoke-spec";
-    /* 把月卡清空 */
-    await run("UPDATE cards SET status='已售' WHERE product_id=? AND spec='月卡'", pid);
-
-    const { status, json } = await api("/api/public/orders", {
-      method: "POST",
-      body: { productId: pid, spec: "月卡", qty: 1, contact: "spec-test@example.com", payChannel: "test" },
-    });
-    assert.equal(status, 409, "月卡已售罄应被拒绝");
-    assert.match(json.message, /月卡/, `应指出是哪个规格售罄，实际：${json.message}`);
-
-    /* 年卡还有货，应该能正常下单 */
-    const ok = await api("/api/public/orders", {
-      method: "POST",
-      body: { productId: pid, spec: "年卡", qty: 1, contact: "spec-test@example.com", payChannel: "test" },
-    });
-    assert.equal(ok.status, 200, `年卡有货却下不了单：${JSON.stringify(ok.json)}`);
-  });
-
   await test("已售卡密不允许删除", async () => {
     const soldCard = await get("SELECT id FROM cards WHERE status = '已售' LIMIT 1");
     assert.ok(soldCard, "需要一个已售卡密用于测试");
@@ -802,6 +619,10 @@ try {
     assert.ok(Math.abs(d.revenue - Number(row.revenue)) < 0.01, "成交金额口径不对");
   });
 
+  /* 本地没有可收款的渠道，无法通过下单拿到「已发货」订单，
+     下面两个用例直接复用种子里的固定演示订单（已发货）。 */
+  const orderNo = "JKP20260101001";
+
   await test("补发卡密会增加卡密数量", async () => {
     const order = await get("SELECT id, qty, product_id, spec FROM orders WHERE order_no = ?", orderNo);
     const before = Number(await scalar("SELECT COUNT(*) AS c FROM order_cards WHERE order_id = ?", order.id));
@@ -829,38 +650,15 @@ try {
 
   /* ------------------------------------------------------ 客户管理 */
 
-  await test("下单会自动建立客户档案并记录 IP", async () => {
-    const contact = `auto-${Date.now()}@example.com`;
-    const created = await api("/api/public/orders", {
-      method: "POST",
-      body: { productId: "p008", spec: "500 点券", qty: 1, contact },
-    });
-    assert.equal(created.status, 200, JSON.stringify(created.json));
-
-    const found = await get("SELECT uid, contact, last_ip FROM users WHERE contact = ?", contact);
-    assert.ok(found, "下单后应自动建档 —— 否则后台「客户管理」永远是空的");
-    assert.ok(found.last_ip, `应记录下单 IP，实际 "${found.last_ip}"`);
-
-    await api(`/api/public/orders/${created.json.data.no}/cancel`, { method: "POST" });
-  });
-
   await test("联系方式现在是必填的", async () => {
     for (const contact of [undefined, "", "   "]) {
       const { status, json } = await api("/api/public/orders", {
         method: "POST",
-        body: { productId: "p008", spec: "500 点券", qty: 1, contact, payChannel: "test" },
+        body: { productId: "p008", spec: "500 点券", qty: 1, contact, payChannel: "wechat" },
       });
       assert.equal(status, 400, `联系方式为「${contact}」时应被拒绝，实际 ${status}`);
       assert.match(json.message, /联系方式/, `错误信息应点名联系方式：${json.message}`);
     }
-
-    /* 必填但不限格式：中文、QQ 号都行 */
-    const ok = await api("/api/public/orders", {
-      method: "POST",
-      body: { productId: "p008", spec: "500 点券", qty: 1, contact: "随便写一个字", payChannel: "test" },
-    });
-    assert.equal(ok.status, 200, `非空即可，不该限制格式：${JSON.stringify(ok.json)}`);
-    await api(`/api/public/orders/${ok.json.data.no}/cancel`, { method: "POST" });
   });
 
   await test("客户列表带最近下单 IP，且不再暴露封禁状态", async () => {
@@ -1030,7 +828,7 @@ try {
 
     assert.ok(p.channels.includes("wechat"), `启用了就该下发给前台，实际 ${JSON.stringify(p.channels)}`);
     assert.equal(p.channelReady.wechat, false, "没配好的渠道要带 channelReady=false，前台才好标「暂不可用」");
-    assert.ok(p.channels.includes("test"), "测试渠道一直可用");
+    assert.ok(!p.channels.includes("test"), "测试渠道已彻底移除，不应再下发给前台");
 
     /* 真下单还是要被拦住 —— 客户端判断不能当防线 */
     const { status, json } = await api("/api/public/orders", {
@@ -1068,34 +866,6 @@ try {
     assert.match(json.message, /微信支付/, `应点名渠道：${json.message}`);
   });
 
-  await test("【安全】真实渠道的订单不能靠订单号手动标记已付", async () => {
-    /* 造一个微信渠道的订单：直接改库模拟「已下单但未支付」 */
-    const created = await api("/api/public/orders", {
-      method: "POST",
-      body: {
-        productId: "p008", spec: "500 点券", qty: 1,
-        contact: "hack@example.com", payChannel: "test",
-      },
-    });
-    assert.equal(created.status, 200);
-    const no = created.json.data.no;
-
-    await run("UPDATE orders SET pay_channel = 'wechat' WHERE order_no = ?", no);
-
-    const { status, json } = await api(`/api/public/orders/${no}/pay`, { method: "POST" });
-    assert.equal(status, 409, "真实渠道订单不该允许手动确认支付");
-    assert.match(json.message, /真实支付/, `错误信息应说明原因：${json.message}`);
-
-    /* 订单仍是待付款，没有白送卡 */
-    const row = await get("SELECT status FROM orders WHERE order_no = ?", no);
-    assert.equal(row.status, "待付款", "被拒绝后订单状态不该改变");
-
-    /* 改回测试渠道就能正常确认，确认限制是渠道而非订单本身的问题 */
-    await run("UPDATE orders SET pay_channel = 'test' WHERE order_no = ?", no);
-    const paid = await api(`/api/public/orders/${no}/pay`, { method: "POST" });
-    assert.equal(paid.status, 200, "测试渠道应可正常确认");
-  });
-
   await test("保存设置立即生效", async () => {
     const { status } = await api("/api/admin/settings", {
       method: "PUT", auth: true,
@@ -1118,20 +888,21 @@ try {
     });
   });
 
+  await test("支付渠道可以全部关闭（不再强制启用某个渠道）", async () => {
+    const { status } = await api("/api/admin/settings", {
+      method: "PUT", auth: true,
+      body: { payment: { wxEnable: 0, aliEnable: 0 } },
+    });
+    assert.equal(status, 200, "全部支付渠道关闭也应能保存");
+  });
+
   await test("非法设置值被拒绝", async () => {
     const { status, json } = await api("/api/admin/settings", {
       method: "PUT", auth: true,
-      body: { payment: { wxEnable: 0, aliEnable: 0, testEnable: 0 } },
+      body: { trade: { autoCloseMinutes: 0 } },
     });
-    assert.equal(status, 400, "三种支付方式同时关闭应被拒绝");
-    assert.match(json.message, /支付/, `错误信息应说明原因：${json.message}`);
-
-    /* 只关掉微信、留着测试渠道是允许的 */
-    const partial = await api("/api/admin/settings", {
-      method: "PUT", auth: true,
-      body: { payment: { wxEnable: 0, aliEnable: 0, testEnable: 1 } },
-    });
-    assert.equal(partial.status, 200, "保留测试渠道时应能保存");
+    assert.equal(status, 400, "自动关单时间必须 >= 1");
+    assert.match(json.message, /自动关单时间/, `错误信息应说明原因：${json.message}`);
   });
 
   await test("公告保存后前台可见", async () => {
@@ -1305,73 +1076,12 @@ try {
   /* ------------------------------------------- 联系方式自由填写 */
   section("联系方式不限制格式");
 
-  await test("任意内容都能作为联系方式下单", async () => {
-    const samples = [
-      "13800001111",
-      "buyer@example.com",
-      "QQ12345678",
-      "微信：kafu-001",
-      "随便写点什么",
-      "12345",
-      "a",
-    ];
-
-    for (const contact of samples) {
-      const { status, json } = await api("/api/public/orders", {
-        method: "POST",
-        body: { productId: "p008", spec: "500 点券", qty: 1, contact, payChannel: "test" },
-      });
-      assert.equal(status, 200, `「${contact}」应能下单，实际 ${status}：${JSON.stringify(json)}`);
-      assert.equal(json.data.contact, contact, "联系方式应原样保存");
-      /* 清理：取消掉，避免占用库存 */
-      await api(`/api/public/orders/${json.data.no}/cancel`, { method: "POST" });
-    }
-  });
-
   await test("超长联系方式会被拒绝（防止撑爆列宽）", async () => {
     const { status } = await api("/api/public/orders", {
       method: "POST",
       body: { productId: "p008", spec: "500 点券", qty: 1, contact: "x".repeat(200) },
     });
     assert.equal(status, 400, "超长联系方式应被拒绝");
-  });
-
-  await test("支付时不校验联系方式，只认订单号", async () => {
-    const created = await api("/api/public/orders", {
-      method: "POST",
-      body: {
-        productId: "p008", spec: "500 点券", qty: 1,
-        contact: "随便写的联系方式", payChannel: "test",
-      },
-    });
-    assert.equal(created.status, 200, `下单失败：${JSON.stringify(created.json)}`);
-
-    /* 支付请求体里什么都不带，照样应该成功 */
-    const paid = await api(`/api/public/orders/${created.json.data.no}/pay`, { method: "POST" });
-    assert.equal(paid.status, 200, `支付不该要求联系方式：${JSON.stringify(paid.json)}`);
-    assert.equal(paid.json.data.status, "已发货");
-  });
-
-  await test("测试渠道订单返回的支付信息可直接使用", async () => {
-    const created = await api("/api/public/orders", {
-      method: "POST",
-      body: {
-        productId: "p008", spec: "500 点券", qty: 1,
-        contact: "test-pay@example.com", payChannel: "test",
-      },
-    });
-    assert.equal(created.status, 200);
-
-    const data = created.json.data;
-    assert.equal(data.payChannel, "test", "应回传渠道码");
-    assert.equal(data.payMethod, "测试支付", "应回传中文标签");
-    assert.equal(data.payment.mode, "test", "测试渠道不需要扫码");
-    assert.equal(data.payment.qrCode, "", "测试渠道不该有付款码");
-    assert.equal(data.payError, "", "测试渠道不该有错误");
-    /* 真实渠道才有二维码；测试渠道 qrSvg 应为空 */
-    assert.equal(data.qrSvg, "");
-
-    await api(`/api/public/orders/${data.no}/cancel`, { method: "POST" });
   });
 
   await test("设置接口返回通知分区，且密钥不回传明文", async () => {
@@ -1528,15 +1238,15 @@ try {
       });
     }
 
-    /* 给 stuck 挂一笔待付款订单 */
-    const order = await api("/api/public/orders", {
-      method: "POST",
-      body: {
-        productId: stuck, spec: "月卡", qty: 1,
-        contact: "batch@example.com", payChannel: "test",
-      },
-    });
-    assert.equal(order.status, 200);
+    /* 给 stuck 挂一笔待付款订单（本地没有可收款渠道，直接建库模拟） */
+    await run(
+      `INSERT INTO orders
+        (order_no, product_id, product_name, spec, qty, unit_price, amount, contact,
+         pay_method, pay_channel, status, created_at, expires_at, client_ip)
+       VALUES (?,?,?,?,?,?,?,?,?,?,'待付款',?,?,?)`,
+      "JKP-BATCH-STUCK", stuck, `批量失败测试 ${stuck}`, "月卡", 1, 1, 1,
+      "batch@example.com", "微信支付", "wechat", "2026-01-05 09:00:00", "2026-01-05 09:15:00", "127.0.0.1"
+    );
 
     const result = await api("/api/admin/products/batch", {
       method: "POST", auth: true, body: { ids: [stuck, okOne], action: "delete" },
@@ -1547,7 +1257,7 @@ try {
     assert.match(result.json.data.skipped[0], /batch-stuck/, "失败项要指明是哪个商品");
 
     /* 清理 */
-    await api(`/api/public/orders/${order.json.data.no}/cancel`, { method: "POST" });
+    await run("DELETE FROM orders WHERE order_no = 'JKP-BATCH-STUCK'");
     await api("/api/admin/products/batch", {
       method: "POST", auth: true, body: { ids: [stuck], action: "delete" },
     });
@@ -1580,12 +1290,9 @@ try {
       body: { productId: pid, spec: "月卡", text: "BC-1\nBC-2\nBC-3\nBC-4" },
     });
 
-    /* 卖掉一张，制造一条「已售」 */
-    const order = await api("/api/public/orders", {
-      method: "POST",
-      body: { productId: pid, spec: "月卡", qty: 1, contact: "bc@example.com", payChannel: "test" },
-    });
-    await api(`/api/public/orders/${order.json.data.no}/pay`, { method: "POST" });
+    /* 卖掉一张，制造一条「已售」（本地没有可收款渠道，直接建库模拟） */
+    const toSell = await get("SELECT id FROM cards WHERE product_id = ? AND status = '未售' LIMIT 1", pid);
+    await run("UPDATE cards SET status = '已售' WHERE id = ?", toSell.id);
 
     const cardRows = await all("SELECT id, status FROM cards WHERE product_id = ?", pid);
     assert.equal(cardRows.length, 4);
@@ -1630,8 +1337,13 @@ try {
 
     assert.ok(p.channelStatus, "应返回 channelStatus —— 后台靠它解释「为什么前台没有」");
     assert.ok(Array.isArray(p.availableChannels), "应返回前台实际可用的渠道列表");
+    assert.deepEqual(
+      Object.keys(p.channelStatus).sort(),
+      ["alipay", "wechat"],
+      "测试渠道已下线，channelStatus 只应包含微信与支付宝"
+    );
 
-    for (const code of ["wechat", "alipay", "test"]) {
+    for (const code of ["wechat", "alipay"]) {
       const s = p.channelStatus[code];
       assert.ok(s, `缺少 ${code} 的状态`);
       assert.equal(typeof s.enabled, "boolean", `${code}.enabled 类型不对`);

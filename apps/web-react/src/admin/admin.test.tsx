@@ -1055,7 +1055,7 @@ describe("管理后台", () => {
   it("支付设置会明确告诉管理员「启用了但没配置，前台不显示」", async () => {
     window.history.pushState({}, "", "/settings");
 
-    /* 微信：启用了但缺密钥；支付宝：已配置完整；测试：可用 */
+    /* 微信：启用了但缺密钥；支付宝：已配置完整 */
     const settingsWithGaps = {
       ...demoAdminSettings,
       payment: {
@@ -1067,10 +1067,9 @@ describe("管理后台", () => {
         channelStatus: {
           wechat: { enabled: true, configured: false, ready: false, missing: ["AppID", "证书序列号", "商户私钥"] },
           alipay: { enabled: true, configured: true, ready: true, missing: [] },
-          test: { enabled: true, configured: true, ready: true, missing: [] },
         },
-        availableChannels: ["alipay", "test"],
-        enabledChannels: ["wechat", "alipay", "test"],
+        availableChannels: ["alipay"],
+        enabledChannels: ["wechat", "alipay"],
       },
     };
 
@@ -1086,7 +1085,7 @@ describe("管理后台", () => {
 
     /* 顶部一句话说明前台会显示什么 —— 这正是「我打开了为什么前台没有」的答案 */
     expect(await screen.findByText(/前台会显示这些支付方式/)).toBeInTheDocument();
-    expect(screen.getByText("微信支付、支付宝、测试支付")).toBeInTheDocument();
+    expect(screen.getByText("微信支付、支付宝")).toBeInTheDocument();
     /* 并指出哪个点不了 */
     expect(screen.getByText(/还没配置完整/)).toBeInTheDocument();
 
@@ -1094,8 +1093,8 @@ describe("管理后台", () => {
     expect(screen.getByText("⚠ 暂不可用")).toBeInTheDocument();
     expect(screen.getByText(/缺少配置：AppID、证书序列号、商户私钥/)).toBeInTheDocument();
 
-    /* 支付宝与测试都可正常收款 */
-    expect(screen.getAllByText("✓ 可正常收款").length).toBe(2);
+    /* 只有支付宝可正常收款 */
+    expect(screen.getAllByText("✓ 可正常收款").length).toBe(1);
   });
 
   it("保存设置会提交完整分区数据", async () => {

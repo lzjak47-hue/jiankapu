@@ -170,8 +170,8 @@ export function toApi() {
    * 只看开关是看不出来的，得把缺哪几项直接列出来。
    */
   out.payment.channelStatus = Object.fromEntries(
-    ["wechat", "alipay", "test"].map((code) => {
-      const enabled = getBool(`payment.${code === "wechat" ? "wxEnable" : code === "alipay" ? "aliEnable" : "testEnable"}`, false);
+    ["wechat", "alipay"].map((code) => {
+      const enabled = getBool(`payment.${code === "wechat" ? "wxEnable" : "aliEnable"}`, false);
       const configured = isChannelConfigured(code);
       const missing = channelMissingKeys(code);
       return [
@@ -277,7 +277,7 @@ export function isChannelConfigured(channel) {
         getRaw("payment.aliPublicKey", "").trim()
     );
   }
-  if (channel === "test") return true;
+  if (channel === "test") return false;
   return false;
 }
 
@@ -287,13 +287,12 @@ export function isChannelConfigured(channel) {
  * 这是下发给前台渲染的列表 —— 后台把开关打开了，前台就要看得到，
  * 否则管理员会一直纳闷「我明明开了怎么没有」。
  * 没配好的渠道前台会标成「暂不可用」，但至少它在列表里。
- * @returns {{wechat: boolean, alipay: boolean, test: boolean}}
+ * @returns {{wechat: boolean, alipay: boolean}}
  */
 export function enabledChannels() {
   return {
     wechat: getBool("payment.wxEnable", false),
     alipay: getBool("payment.aliEnable", false),
-    test: getBool("payment.testEnable", false),
   };
 }
 
@@ -313,7 +312,6 @@ export function availableChannels() {
   return {
     wechat: enabled.wechat && isChannelConfigured("wechat"),
     alipay: enabled.alipay && isChannelConfigured("alipay"),
-    test: enabled.test,
   };
 }
 
@@ -394,20 +392,7 @@ export async function save(payload) {
   if (Number(effective("security.lockThreshold", getRaw("security.lockThreshold", "5"))) < 1) {
     throw badRequest("登录失败锁定阈值至少为 1 次");
   }
-  /* 至少要留下一种可用的支付方式，否则前台根本下不了单。
-     注意三个渠道都要算上：测试渠道默认开启，所以全新部署也能保存设置。 */
-  const channelOn = (key, effective) => {
-    const raw = effective(key, getRaw(key, "0"));
-    return raw === "1" || raw === "true";
-  };
-  const anyChannel =
-    channelOn("payment.wxEnable", effective) ||
-    channelOn("payment.aliEnable", effective) ||
-    channelOn("payment.testEnable", effective);
-
-  if (!anyChannel) {
-    throw badRequest("至少要启用一种支付方式，否则前台无法下单");
-  }
+  /* 支付渠道可以全部关闭（管理员可能尚未配好真实支付），保存设置不再强制要求启用某种渠道 */
 
   await tx(async () => {
     for (const [key, value] of updates) {
