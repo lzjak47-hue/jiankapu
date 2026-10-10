@@ -462,6 +462,13 @@ code {
 .input.is-error:focus {
   box-shadow: 0 0 0 4px rgb(229 72 77 / 15%);
 }
+.textarea.is-error {
+  border-color: var(--danger);
+  background: var(--danger-weak);
+}
+.textarea.is-error:focus {
+  box-shadow: 0 0 0 4px rgb(229 72 77 / 15%);
+}
 
 .textarea {
   height: auto;

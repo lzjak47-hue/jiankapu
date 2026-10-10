@@ -486,6 +486,7 @@ export interface AdminSettings {
     aliPrivateKey: string;
     aliPrivateKeySet: boolean;
     aliPublicKey: string;
+    aliPublicKeySet: boolean;
     aliGateway: string;
 
     // 本地测试支付

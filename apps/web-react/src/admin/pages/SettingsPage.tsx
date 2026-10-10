@@ -5,6 +5,7 @@
  * 支付的密钥字段永不回传明文，只返回「是否已配置」；提交空值表示不修改。
  */
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { api } from "../../shared/api";
 import { useAsync } from "../../shared/hooks";
 import { Skeleton, Switch } from "../../shared/components";
@@ -35,6 +36,8 @@ function TextField({
   placeholder,
   disabled,
   required = false,
+  configured,
+  secret = false,
 }: {
   id: string;
   label: string;
@@ -46,8 +49,13 @@ function TextField({
   disabled?: boolean;
   /** 关键字段：标签打星号；未填写时提示，填写后显示 ✓ */
   required?: boolean;
+  /** 密钥类字段用：是否已配置由后端 xxxKeySet 标志判定（密钥明文不回传，值为空是正常的） */
+  configured?: boolean;
+  /** 密钥类：已配置时用星号占位提示，不显示真实值 */
+  secret?: boolean;
 }) {
-  const filled = String(value ?? "").trim() !== "";
+  const filled = configured !== undefined ? configured : String(value ?? "").trim() !== "";
+  const ph = secret && configured ? "••••••••••（已配置，输入新值即修改）" : placeholder;
   return (
     <div className="field">
       <div className="field-label-row">
@@ -64,8 +72,50 @@ function TextField({
         className={`input${required && !filled ? " is-error" : ""}`}
         type={type}
         value={value}
-        placeholder={placeholder}
+        placeholder={ph}
         disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {desc && <div className="desc">{desc}</div>}
+    </div>
+  );
+}
+
+/** 密钥类文本域（私钥 / 公钥等长文本）：星号占位 + 配置状态标记，同样不回显真实值 */
+function SecretArea({
+  id,
+  label,
+  desc,
+  value,
+  onChange,
+  configured,
+}: {
+  id: string;
+  label: string;
+  desc: ReactNode;
+  value: string;
+  onChange: (value: string) => void;
+  configured: boolean;
+}) {
+  return (
+    <div className="field col-span-2">
+      <div className="field-label-row">
+        <label htmlFor={id}>{label}</label>
+        <span className="req">*</span>
+        <span className={`fill-mark${configured ? " is-filled" : ""}`}>
+          {configured ? "✓ 已填写" : "⚠ 尚未填写"}
+        </span>
+      </div>
+      <textarea
+        id={id}
+        className={`textarea${configured ? "" : " is-error"}`}
+        style={{ minHeight: 96 }}
+        value={value}
+        placeholder={
+          configured
+            ? "••••••••••（已配置，粘贴新内容即修改，留空不修改）"
+            : "尚未填写，请粘贴完整内容"
+        }
         onChange={(e) => onChange(e.target.value)}
       />
       {desc && <div className="desc">{desc}</div>}
@@ -461,6 +511,7 @@ export function SettingsPage() {
                   <TextField
                     id="s-wx-appid"
                     label="AppID"
+                    required
                     value={form.payment.wxAppId}
                     onChange={(v) => patchPayment("wxAppId", v)}
                     placeholder="wx****************"
@@ -469,6 +520,7 @@ export function SettingsPage() {
                   <TextField
                     id="s-wx-mch"
                     label="商户号 mchid"
+                    required
                     value={form.payment.wxMchId}
                     onChange={(v) => patchPayment("wxMchId", v)}
                     placeholder="1600000000"
@@ -476,6 +528,7 @@ export function SettingsPage() {
                   <TextField
                     id="s-wx-serial"
                     label="证书序列号"
+                    required
                     value={form.payment.wxSerialNo}
                     onChange={(v) => patchPayment("wxSerialNo", v)}
                     placeholder="45F5**********"
@@ -485,29 +538,27 @@ export function SettingsPage() {
                     id="s-wx-apiv3"
                     label="APIv3 密钥"
                     type="password"
+                    required
+                    secret
+                    configured={form.payment.wxApiV3KeySet}
                     value={form.payment.wxApiV3Key}
                     onChange={(v) => patchPayment("wxApiV3Key", v)}
                     placeholder="留空表示不修改"
-                    desc={`必须正好 32 位。当前状态：${
-                      form.payment.wxApiV3KeySet ? "已配置，留空表示不修改" : "尚未配置"
-                    }`}
+                    desc="必须正好 32 位，只保存在服务端，永不回传浏览器。"
                   />
-                  <div className="field col-span-2">
-                    <label htmlFor="s-wx-key">商户私钥（apiclient_key.pem）</label>
-                    <textarea
-                      id="s-wx-key"
-                      className="textarea"
-                      style={{ minHeight: 96 }}
-                      value={form.payment.wxPrivateKey}
-                      placeholder="留空表示不修改"
-                      onChange={(e) => patchPayment("wxPrivateKey", e.target.value)}
-                    />
-                    <div className="desc">
-                      把 apiclient_key.pem 的<strong>完整内容</strong>（含 BEGIN/END 行）粘贴到这里。
-                      仅保存在服务端，永不回传浏览器。当前状态：
-                      {form.payment.wxPrivateKeySet ? "已配置，留空表示不修改" : "尚未配置"}
-                    </div>
-                  </div>
+                  <SecretArea
+                    id="s-wx-key"
+                    label="商户私钥（apiclient_key.pem）"
+                    value={form.payment.wxPrivateKey}
+                    onChange={(v) => patchPayment("wxPrivateKey", v)}
+                    configured={form.payment.wxPrivateKeySet}
+                    desc={
+                      <>
+                        把 apiclient_key.pem 的<strong>完整内容</strong>（含 BEGIN/END 行）粘贴到这里，
+                        仅保存在服务端，永不回传浏览器。
+                      </>
+                    }
+                  />
                 </div>
 
                 {/* ---------------- 支付宝 ---------------- */}
@@ -529,6 +580,7 @@ export function SettingsPage() {
                   <TextField
                     id="s-ali-app"
                     label="AppID"
+                    required
                     value={form.payment.aliAppId}
                     onChange={(v) => patchPayment("aliAppId", v)}
                     placeholder="2021**********"
@@ -542,37 +594,31 @@ export function SettingsPage() {
                     placeholder="https://openapi.alipay.com/gateway.do"
                     desc="一般不用改；沙箱环境填沙箱网关。"
                   />
-                  <div className="field col-span-2">
-                    <label htmlFor="s-ali-private">应用私钥</label>
-                    <textarea
-                      id="s-ali-private"
-                      className="textarea"
-                      style={{ minHeight: 96 }}
-                      value={form.payment.aliPrivateKey}
-                      placeholder="留空表示不修改"
-                      onChange={(e) => patchPayment("aliPrivateKey", e.target.value)}
-                    />
-                    <div className="desc">
-                      用支付宝密钥工具生成的<strong>应用私钥</strong>（RSA2）。
-                      只保存在服务端。当前状态：
-                      {form.payment.aliPrivateKeySet ? "已配置，留空表示不修改" : "尚未配置"}
-                    </div>
-                  </div>
-                  <div className="field col-span-2">
-                    <label htmlFor="s-ali-public">支付宝公钥</label>
-                    <textarea
-                      id="s-ali-public"
-                      className="textarea"
-                      style={{ minHeight: 96 }}
-                      value={form.payment.aliPublicKey}
-                      placeholder="用于校验支付宝回调的签名"
-                      onChange={(e) => patchPayment("aliPublicKey", e.target.value)}
-                    />
-                    <div className="desc">
-                      注意是<strong>支付宝公钥</strong>而不是应用公钥 —— 回调验签用它，
-                      填错了会导致付款成功却不发货。
-                    </div>
-                  </div>
+                  <SecretArea
+                    id="s-ali-private"
+                    label="应用私钥"
+                    value={form.payment.aliPrivateKey}
+                    onChange={(v) => patchPayment("aliPrivateKey", v)}
+                    configured={form.payment.aliPrivateKeySet}
+                    desc={
+                      <>
+                        用支付宝密钥工具生成的<strong>应用私钥</strong>（RSA2），只保存在服务端。
+                      </>
+                    }
+                  />
+                  <SecretArea
+                    id="s-ali-public"
+                    label="支付宝公钥"
+                    value={form.payment.aliPublicKey}
+                    onChange={(v) => patchPayment("aliPublicKey", v)}
+                    configured={form.payment.aliPublicKeySet}
+                    desc={
+                      <>
+                        注意是<strong>支付宝公钥</strong>而不是应用公钥 —— 回调验签用它，
+                        填错了会导致付款成功却不发货。
+                      </>
+                    }
+                  />
                 </div>
 
                 {/* ---------------- 测试支付 ---------------- */}
@@ -748,10 +794,11 @@ export function SettingsPage() {
                       label="Resend API Key"
                       type="password"
                       required
+                      secret
+                      configured={form.notify.resendKeySet}
                       value={form.notify.resendKey}
                       onChange={(v) => patchNotify("resendKey", v)}
-                      placeholder="re_ 开头，留空表示不修改"
-                      desc={`当前状态：${form.notify.resendKeySet ? "已配置，留空表示不修改" : "尚未配置"} · 在 resend.com 注册后到 API Keys 页面创建`}
+                      desc="在 resend.com 注册后到 API Keys 页面创建"
                     />
                     <TextField
                       id="n-smtp-name"
@@ -793,10 +840,11 @@ export function SettingsPage() {
                         label="密码 / 授权码"
                         type="password"
                         required
+                        secret
+                        configured={form.notify.smtpPassSet}
                         value={form.notify.smtpPass}
                         onChange={(v) => patchNotify("smtpPass", v)}
-                        placeholder="留空表示不修改"
-                        desc={`当前状态：${form.notify.smtpPassSet ? "已配置，留空表示不修改" : "尚未配置"}`}
+                        desc="163 / QQ 等国内邮箱需使用客户端授权码，而不是网页登录密码"
                       />
                       <TextField
                         id="n-smtp-from"
@@ -872,10 +920,12 @@ export function SettingsPage() {
                     id="n-sms-key"
                     label="接口密钥"
                     type="password"
+                    required
+                    secret
+                    configured={form.notify.smsKeySet}
                     value={form.notify.smsKey}
                     onChange={(v) => patchNotify("smsKey", v)}
-                    placeholder="留空表示不修改"
-                    desc={`当前状态：${form.notify.smsKeySet ? "已配置，留空表示不修改" : "尚未配置"}`}
+                    desc="网关的密钥 / 密码，替换参数模板中的 {key} 占位符"
                   />
                   <div className="field col-span-2">
                     <label htmlFor="n-sms-params">参数模板</label>

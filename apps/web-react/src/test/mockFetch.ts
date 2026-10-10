@@ -150,6 +150,7 @@ export const demoAdminSettings: AdminSettings = {
     aliPrivateKey: "",
     aliPrivateKeySet: true,
     aliPublicKey: "MIIBIjANBgkq...",
+    aliPublicKeySet: true,
     aliGateway: "https://openapi.alipay.com/gateway.do",
     testEnable: 1,
     testAutoPay: 0,

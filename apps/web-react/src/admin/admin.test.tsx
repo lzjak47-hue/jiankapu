@@ -374,8 +374,8 @@ describe("管理后台 · 排序、导出与改密码", () => {
 
     const pass = await screen.findByLabelText("密码 / 授权码");
     expect(pass).toHaveValue("");
-    expect(screen.getByText(/当前状态：已配置/)).toBeInTheDocument();
-    expect(screen.getByText(/当前状态：尚未配置/)).toBeInTheDocument();
+    expect(screen.getByText(/已填写/)).toBeInTheDocument();
+    expect(screen.getByText(/尚未填写/)).toBeInTheDocument();
 
     await user.type(screen.getByLabelText("测试接收地址"), "buyer@example.com");
     await user.click(screen.getByRole("button", { name: "测试邮件" }));
@@ -1045,7 +1045,7 @@ describe("管理后台", () => {
 
     const apiV3 = await screen.findByLabelText("APIv3 密钥");
     expect(apiV3).toHaveValue("");
-    expect(screen.getAllByText(/当前状态：已配置/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/已填写/).length).toBeGreaterThan(0);
 
     /* 私钥用 textarea 粘贴，同样不回显 */
     expect(screen.getByLabelText("商户私钥（apiclient_key.pem）")).toHaveValue("");
