@@ -514,6 +514,8 @@ export interface AdminSettings {
     enable: number;
 
     mailEnable: number;
+    /** 邮件发送通道：smtp（传统 SMTP）或 resend（HTTP API，云平台可用） */
+    mailProvider: string;
     smtpHost: string;
     smtpPort: number;
     smtpSecure: number;
@@ -522,6 +524,8 @@ export interface AdminSettings {
     smtpPassSet: boolean;
     smtpFrom: string;
     smtpFromName: string;
+    resendKey: string;
+    resendKeySet: boolean;
 
     smsEnable: number;
     smsUrl: string;

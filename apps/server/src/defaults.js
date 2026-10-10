@@ -73,6 +73,8 @@ export const DEFAULT_SETTINGS = {
 
   /* 邮箱（SMTP） */
   "notify.mailEnable": "0",
+  "notify.mailProvider": "smtp",
+  "notify.resendKey": "",
   "notify.smtpHost": "",
   "notify.smtpPort": "465",
   "notify.smtpSecure": "1",

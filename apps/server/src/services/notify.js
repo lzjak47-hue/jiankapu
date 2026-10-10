@@ -9,6 +9,7 @@
  *   · 发送失败一律吞掉并记日志，不能让已经完成的支付被一个短信网关拖挂
  */
 import { sendMail } from "../lib/mailer.js";
+import { sendEmail as sendResendEmail } from "../lib/resend.js";
 import { sendSms } from "../lib/sms.js";
 import { logger } from "../lib/logger.js";
 import * as settingsService from "./settings.js";
@@ -59,6 +60,18 @@ function buildVars(order, secrets) {
 
 /** 发邮件。配置不全时抛出可读的错误。 */
 export async function sendMailNow(to, subject, text) {
+  /* HTTP 通道（Resend）：云平台封锁 SMTP 出站时的免费替代方案 */
+  const provider = settingsService.getRaw("notify.mailProvider", "smtp").trim();
+  if (provider === "resend") {
+    return sendResendEmail({
+      apiKey: settingsService.getRaw("notify.resendKey", "").trim(),
+      fromName: settingsService.getRaw("notify.smtpFromName", ""),
+      to,
+      subject,
+      text,
+    });
+  }
+
   const host = settingsService.getRaw("notify.smtpHost", "").trim();
   const from = settingsService.getRaw("notify.smtpFrom", "").trim() ||
     settingsService.getRaw("notify.smtpUser", "").trim();

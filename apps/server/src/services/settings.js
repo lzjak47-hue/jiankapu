@@ -48,6 +48,7 @@ const SECRET_KEYS = new Set([
   "payment.wxApiV3Key",
   "payment.aliPrivateKey",
   "notify.smtpPass",
+  "notify.resendKey",
   "notify.smsKey",
 ]);
 
@@ -57,6 +58,7 @@ const SECRET_FLAGS = {
   "payment.wxApiV3Key": "wxApiV3KeySet",
   "payment.aliPrivateKey": "aliPrivateKeySet",
   "notify.smtpPass": "smtpPassSet",
+  "notify.resendKey": "resendKeySet",
   "notify.smsKey": "smsKeySet",
 };
 
@@ -133,7 +135,8 @@ export function toApi() {
     security: ["adminPath", "captcha", "loginFailLock", "lockThreshold", "sessionTimeout"],
     notify: [
       "enable",
-      "mailEnable", "smtpHost", "smtpPort", "smtpSecure", "smtpUser", "smtpFrom", "smtpFromName",
+      "mailEnable", "mailProvider",
+      "smtpHost", "smtpPort", "smtpSecure", "smtpUser", "smtpFrom", "smtpFromName",
       "smsEnable", "smsUrl", "smsMethod", "smsBodyType", "smsParams", "smsSuccessText",
       "mailSubject", "mailBody", "smsBody",
     ],

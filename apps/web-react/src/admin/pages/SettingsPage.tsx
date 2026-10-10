@@ -700,7 +700,7 @@ export function SettingsPage() {
 
                 {/* ---------------- 邮件 ---------------- */}
                 <div className="form-section-title" style={{ marginTop: 24 }}>
-                  <span className="idx">1</span> 邮箱通知（SMTP）
+                  <span className="idx">1</span> 邮箱通知
                 </div>
 
                 <SwitchRow
@@ -710,60 +710,101 @@ export function SettingsPage() {
                   onChange={(next) => patchNotify("mailEnable", next ? 1 : 0)}
                 />
 
-                <div className="form-grid mt-16">
-                  <TextField
-                    id="n-smtp-host"
-                    label="SMTP 服务器"
-                    value={form.notify.smtpHost}
-                    onChange={(v) => patchNotify("smtpHost", v)}
-                    placeholder="smtp.qq.com"
-                  />
-                  <TextField
-                    id="n-smtp-port"
-                    label="端口"
-                    type="number"
-                    value={form.notify.smtpPort}
-                    onChange={(v) => patchNotify("smtpPort", Number(v))}
-                    desc="465 = SSL；587 = STARTTLS；25 = 明文"
-                  />
-                  <TextField
-                    id="n-smtp-user"
-                    label="邮箱账号"
-                    value={form.notify.smtpUser}
-                    onChange={(v) => patchNotify("smtpUser", v)}
-                    placeholder="noreply@example.com"
-                  />
-                  <TextField
-                    id="n-smtp-pass"
-                    label="密码 / 授权码"
-                    type="password"
-                    value={form.notify.smtpPass}
-                    onChange={(v) => patchNotify("smtpPass", v)}
-                    placeholder="留空表示不修改"
-                    desc={`当前状态：${form.notify.smtpPassSet ? "已配置，留空表示不修改" : "尚未配置"}`}
-                  />
-                  <TextField
-                    id="n-smtp-from"
-                    label="发件地址"
-                    value={form.notify.smtpFrom}
-                    onChange={(v) => patchNotify("smtpFrom", v)}
-                    placeholder="留空则使用上面的邮箱账号"
-                  />
-                  <TextField
-                    id="n-smtp-name"
-                    label="发件人显示名"
-                    value={form.notify.smtpFromName}
-                    onChange={(v) => patchNotify("smtpFromName", v)}
-                    placeholder="简卡铺"
-                  />
+                <div className="field mt-16" style={{ maxWidth: 420 }}>
+                  <label htmlFor="n-mail-provider">发送通道</label>
+                  <select
+                    id="n-mail-provider"
+                    className="select"
+                    value={form.notify.mailProvider}
+                    onChange={(e) => patchNotify("mailProvider", e.target.value)}
+                  >
+                    <option value="smtp">SMTP（自己填邮箱服务器）</option>
+                    <option value="resend">Resend HTTP API（云平台部署推荐，免费 100 封/天）</option>
+                  </select>
+                  <div className="desc">
+                    {form.notify.mailProvider === "resend"
+                      ? "走 HTTPS 接口发信，不受云平台对邮件端口的限制；发件人显示为「简卡铺 <onboarding@resend.dev>」。"
+                      : "传统 SMTP 发信；部分云平台（如 Render 免费层）到国内邮箱服务器的连接会超时。"}
+                  </div>
                 </div>
 
-                <SwitchRow
-                  title="使用 SSL 直连"
-                  desc="465 端口请开启；587 / 25 端口请关闭（会自动尝试 STARTTLS）。"
-                  checked={form.notify.smtpSecure === 1}
-                  onChange={(next) => patchNotify("smtpSecure", next ? 1 : 0)}
-                />
+                {form.notify.mailProvider === "resend" ? (
+                  <div className="form-grid mt-16">
+                    <TextField
+                      id="n-resend-key"
+                      label="Resend API Key"
+                      type="password"
+                      value={form.notify.resendKey}
+                      onChange={(v) => patchNotify("resendKey", v)}
+                      placeholder="re_ 开头，留空表示不修改"
+                      desc={`当前状态：${form.notify.resendKeySet ? "已配置，留空表示不修改" : "尚未配置"} · 在 resend.com 注册后到 API Keys 页面创建`}
+                    />
+                    <TextField
+                      id="n-smtp-name"
+                      label="发件人显示名"
+                      value={form.notify.smtpFromName}
+                      onChange={(v) => patchNotify("smtpFromName", v)}
+                      placeholder="简卡铺"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="form-grid mt-16">
+                      <TextField
+                        id="n-smtp-host"
+                        label="SMTP 服务器"
+                        value={form.notify.smtpHost}
+                        onChange={(v) => patchNotify("smtpHost", v)}
+                        placeholder="smtp.qq.com"
+                      />
+                      <TextField
+                        id="n-smtp-port"
+                        label="端口"
+                        type="number"
+                        value={form.notify.smtpPort}
+                        onChange={(v) => patchNotify("smtpPort", Number(v))}
+                        desc="465 = SSL；587 = STARTTLS；25 = 明文"
+                      />
+                      <TextField
+                        id="n-smtp-user"
+                        label="邮箱账号"
+                        value={form.notify.smtpUser}
+                        onChange={(v) => patchNotify("smtpUser", v)}
+                        placeholder="noreply@example.com"
+                      />
+                      <TextField
+                        id="n-smtp-pass"
+                        label="密码 / 授权码"
+                        type="password"
+                        value={form.notify.smtpPass}
+                        onChange={(v) => patchNotify("smtpPass", v)}
+                        placeholder="留空表示不修改"
+                        desc={`当前状态：${form.notify.smtpPassSet ? "已配置，留空表示不修改" : "尚未配置"}`}
+                      />
+                      <TextField
+                        id="n-smtp-from"
+                        label="发件地址"
+                        value={form.notify.smtpFrom}
+                        onChange={(v) => patchNotify("smtpFrom", v)}
+                        placeholder="留空则使用上面的邮箱账号"
+                      />
+                      <TextField
+                        id="n-smtp-name"
+                        label="发件人显示名"
+                        value={form.notify.smtpFromName}
+                        onChange={(v) => patchNotify("smtpFromName", v)}
+                        placeholder="简卡铺"
+                      />
+                    </div>
+
+                    <SwitchRow
+                      title="使用 SSL 直连"
+                      desc="465 端口请开启；587 / 25 端口请关闭（会自动尝试 STARTTLS）。"
+                      checked={form.notify.smtpSecure === 1}
+                      onChange={(next) => patchNotify("smtpSecure", next ? 1 : 0)}
+                    />
+                  </>
+                )}
 
                 {/* ---------------- 短信 ---------------- */}
                 <div className="form-section-title" style={{ marginTop: 32 }}>

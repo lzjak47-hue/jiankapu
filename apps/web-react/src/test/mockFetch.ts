@@ -166,6 +166,7 @@ export const demoAdminSettings: AdminSettings = {
   notify: {
     enable: 1,
     mailEnable: 1,
+    mailProvider: "smtp",
     smtpHost: "smtp.example.com",
     smtpPort: 465,
     smtpSecure: 1,
@@ -174,6 +175,8 @@ export const demoAdminSettings: AdminSettings = {
     smtpPassSet: true,
     smtpFrom: "",
     smtpFromName: "简卡铺",
+    resendKey: "",
+    resendKeySet: false,
     smsEnable: 0,
     smsUrl: "",
     smsMethod: "POST",
