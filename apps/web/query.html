@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#3B6EF6" />
+  <meta name="description" content="简卡铺订单查询 —— 输入订单号或联系方式，随时找回你的卡密。" />
+  <title>查询订单 · 简卡铺</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B6EF6'/%3E%3Ctext x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='%23fff' text-anchor='middle'%3E简%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+  <!-- ===== 公告条 ===== -->
+  <div class="announce">
+    <div class="container announce-inner">
+      <span class="announce-badge">📢 公告</span>
+      <div class="announce-track" id="announceTrack"></div>
+    </div>
+  </div>
+
+  <!-- ===== 顶部导航 ===== -->
+  <header class="header">
+    <div class="container header-inner">
+      <a class="logo" href="index.html">
+        <span class="logo-mark" data-site-logo>简</span>
+        <span data-site-name>简卡铺</span>
+        <span class="logo-sub" data-site-subtitle>自动发货 · 秒发卡密</span>
+      </a>
+
+      <nav class="nav" id="mainNav">
+        <a href="index.html">首页</a>
+        <a href="index.html#catalog">全部商品</a>
+        <a href="index.html#flow">购买流程</a>
+        <a href="query.html" class="is-active">查询订单</a>
+      </nav>
+
+      <div class="header-actions">
+        <div class="header-search">
+          <span class="ico">🔍</span>
+          <input type="search" id="headerSearch" placeholder="搜索商品，如「会员」" />
+        </div>
+        <a class="btn btn-primary" href="index.html#catalog">去选购</a>
+        <button class="nav-toggle" id="navToggle" aria-label="展开菜单">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== 查询主体 ===== -->
+  <main class="container page">
+    <div class="breadcrumb">
+      <a href="index.html">首页</a><span class="sep">/</span><span>查询订单</span>
+    </div>
+
+    <div style="max-width:760px;margin:0 auto">
+      <div style="text-align:center;margin-bottom:28px">
+        <h1 class="h2">找回你的卡密</h1>
+        <p class="muted mt-8">输入下单时获得的<strong>订单号</strong>，即可查看订单状态与卡密内容。</p>
+      </div>
+
+      <form class="panel" id="queryForm" novalidate>
+        <div class="panel-body">
+          <div class="field" style="margin-bottom:16px">
+            <label for="queryInput">订单号</label>
+            <div class="input-group">
+              <input class="input" id="queryInput" type="text" placeholder="例如 JKP20260101001" autocomplete="off" />
+              <button class="btn btn-primary" type="submit">立即查询</button>
+            </div>
+            <p class="hint">订单号在下单成功页面与支付结果中都会显示，请留意保存。</p>
+          </div>
+        </div>
+      </form>
+
+      <div id="queryResult" class="mt-24">
+        <div class="panel">
+          <div class="empty">
+            <div class="ico">🧾</div>
+            <p>还没有查询记录</p>
+            <p class="small dim mt-8">输入上方订单号后点击「立即查询」</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 常见问题 -->
+      <section class="section-sm" id="faq" style="padding-bottom:0">
+        <h2 class="h2" style="font-size:20px;margin-bottom:18px">常见问题</h2>
+        <div class="panel">
+          <div class="panel-body">
+            <div class="prose">
+              <h4>查不到订单怎么办？</h4>
+              <p>请确认订单号是否完整复制（通常以 JKP 开头）。若仍查询不到，请通过右下角在线客服提供下单时间与支付截图，我们会人工协助查找。</p>
+              <h4>卡密显示无效 / 已被使用？</h4>
+              <p>请在发货后 24 小时内联系客服，并提供订单号与卡密截图。核实为卡密本身问题后，我们会免费补发或退款。</p>
+              <h4>买错了规格可以换吗？</h4>
+              <p>虚拟商品一经发货无法撤回，因此不支持更换规格。下单前请仔细核对商品名称与规格。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ===== 页脚 ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a class="logo" href="index.html">
+            <span class="logo-mark">简</span>
+            <span>简卡铺</span>
+          </a>
+          <p>24 小时自动发货的虚拟卡密商城。下单即发，随时可查，售后无忧。</p>
+        </div>
+        <div>
+          <h5>商品分类</h5>
+          <ul class="footer-links">
+            <li><a href="index.html#catalog">视频会员</a></li>
+            <li><a href="index.html#catalog">音乐会员</a></li>
+            <li><a href="index.html#catalog">游戏点卡</a></li>
+            <li><a href="index.html#catalog">软件工具</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>帮助中心</h5>
+          <ul class="footer-links">
+            <li><a href="index.html#flow">购买流程</a></li>
+            <li><a href="query.html">查询订单</a></li>
+            <li><a href="#faq">常见问题</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>联系我们</h5>
+          <ul class="footer-links">
+            <li><a href="#faq" data-service-link>在线客服（<span data-service-time>9:00 - 24:00</span>）</a></li>
+            <li><a href="#faq">客服邮箱 <span data-site-email>support@jiankapu.com</span></a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span data-year>2026</span> <span data-site-name>简卡铺</span> · 数据存储于本地 SQLite</span>
+        <span><span data-footer-text>虚拟商品一经售出不支持退换</span> · <a href="admin/login.html">管理后台</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== 悬浮按钮 ===== -->
+  <div class="fab">
+    <button class="fab-btn primary" title="在线客服" onclick="alert('演示站点：此处接入你的客服链接')">💬</button>
+    <button class="fab-btn" title="回到顶部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+  </div>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

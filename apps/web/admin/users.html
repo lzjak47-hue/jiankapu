@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>用户管理 · 简卡铺管理后台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B6EF6'/%3E%3Ctext x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='%23fff' text-anchor='middle'%3E简%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body class="admin-body" data-page="users" data-title="用户管理" data-sub="查看下单用户、消费情况与账号状态">
+
+  <aside class="sidebar" id="adminSidebar"></aside>
+
+  <div class="admin-main">
+    <header class="topbar" id="adminTopbar"></header>
+
+    <main class="admin-content">
+
+      <div class="stat-grid" id="userStats"></div>
+
+      <div class="toolbar-2 mt-24">
+        <div class="search-box grow">
+          <span class="ico">🔍</span>
+          <input class="input" id="userSearch" type="search" placeholder="搜索昵称 / 联系方式 / 用户 ID" />
+        </div>
+        <select class="select select-sm" id="userStatus">
+          <option value="">全部状态</option>
+          <option value="1">正常</option>
+          <option value="0">已封禁</option>
+        </select>
+      </div>
+
+      <section class="block">
+        <div class="table-scroll">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>用户 ID</th>
+                <th>用户</th>
+                <th>订单数</th>
+                <th>累计消费</th>
+                <th>注册时间</th>
+                <th>最近活跃</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+        <div id="usersPager"></div>
+      </section>
+
+      <p class="small dim mt-16">
+        提示：封禁仅阻止该用户继续下单，不影响历史订单的查询与卡密查看。
+      </p>
+
+    </main>
+  </div>
+
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/admin-data.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

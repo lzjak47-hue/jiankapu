@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>分类管理 · 简卡铺管理后台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B6EF6'/%3E%3Ctext x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='%23fff' text-anchor='middle'%3E简%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body class="admin-body" data-page="categories" data-title="分类管理" data-sub="分类决定前台商品列表的筛选标签">
+
+  <aside class="sidebar" id="adminSidebar"></aside>
+
+  <div class="admin-main">
+    <header class="topbar" id="adminTopbar"></header>
+
+    <main class="admin-content">
+
+      <div class="toolbar-2">
+        <span class="result-count">排序值越小越靠前；分类下还有商品时不允许删除</span>
+        <div class="spacer"></div>
+        <button class="btn btn-primary" id="categoryAdd">＋ 新增分类</button>
+      </div>
+
+      <section class="block">
+        <div class="table-scroll">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>排序</th>
+                <th>分类名称</th>
+                <th>分类标识</th>
+                <th>商品数</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="categoriesBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <p class="small dim mt-16">
+        分类标识（英文 id）会写进商品的 <code>category</code> 字段，创建后不建议随意改动。
+      </p>
+
+    </main>
+  </div>
+
+  <!-- 新增 / 编辑分类弹窗 -->
+  <div class="overlay" id="catModal">
+    <div class="modal" style="max-width:440px">
+      <div class="modal-head">
+        <h3 id="catModalTitle">新增分类</h3>
+        <button class="modal-close" data-close aria-label="关闭">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label for="catName">分类名称 <span class="req">*</span></label>
+          <input class="input" id="catName" type="text" placeholder="例如：视频会员" />
+        </div>
+        <div class="field">
+          <label for="catId">分类标识 <span class="req">*</span></label>
+          <input class="input" id="catId" type="text" placeholder="英文小写，例如 video" />
+          <div class="desc">创建后不可修改。</div>
+        </div>
+        <div class="field">
+          <label for="catSort">排序值</label>
+          <input class="input" id="catSort" type="number" min="1" value="99" />
+        </div>
+        <div class="field">
+          <label for="catRemark">备注</label>
+          <input class="input" id="catRemark" type="text" placeholder="选填，例如：爱奇艺 / 腾讯 / 优酷" />
+        </div>
+        <div class="switch-row" style="border-bottom:none">
+          <div class="txt">
+            <div class="t1">启用该分类</div>
+            <div class="t2">停用后前台筛选栏不再显示该分类。</div>
+          </div>
+          <span class="switch is-on" id="categoryStatusSwitch"></span>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost btn-block" data-close>取消</button>
+        <button class="btn btn-primary btn-block" id="catSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/admin-data.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

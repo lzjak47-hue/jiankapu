@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#3B6EF6" />
+  <meta name="description" content="简卡铺 —— 24 小时自动发货的虚拟卡密商城，视频会员、游戏点卡、软件工具一应俱全，付款后秒发卡密。" />
+  <title>简卡铺 · 24 小时自动发货的卡密商城</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B6EF6'/%3E%3Ctext x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='%23fff' text-anchor='middle'%3E简%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+  <!-- ===== 公告条 ===== -->
+  <div class="announce">
+    <div class="container announce-inner">
+      <span class="announce-badge">📢 公告</span>
+      <div class="announce-track" id="announceTrack"></div>
+    </div>
+  </div>
+
+  <!-- ===== 顶部导航 ===== -->
+  <header class="header">
+    <div class="container header-inner">
+      <a class="logo" href="index.html">
+        <span class="logo-mark" data-site-logo>简</span>
+        <span data-site-name>简卡铺</span>
+        <span class="logo-sub" data-site-subtitle>自动发货 · 秒发卡密</span>
+      </a>
+
+      <nav class="nav" id="mainNav">
+        <a href="index.html" class="is-active">首页</a>
+        <a href="#catalog">全部商品</a>
+        <a href="#flow">购买流程</a>
+        <a href="query.html">查询订单</a>
+      </nav>
+
+      <div class="header-actions">
+        <div class="header-search">
+          <span class="ico">🔍</span>
+          <input type="search" id="headerSearch" placeholder="搜索商品，如「会员」" />
+        </div>
+        <a class="btn btn-soft" href="query.html">查订单</a>
+        <button class="nav-toggle" id="navToggle" aria-label="展开菜单">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== 首屏 Hero ===== -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div>
+        <span class="hero-eyebrow"><span class="dot"></span> 全站 24 小时无人值守 · 付款后自动发货</span>
+
+        <h1 class="hero-title">
+          买卡密，<span class="grad">就是这么简单</span>
+        </h1>
+
+        <p class="hero-desc">
+          视频会员、游戏点卡、软件授权、话费充值 —— 全场官方渠道直充，下单后系统秒发卡密，
+          不用等人工、不用加群、不用催单。
+        </p>
+
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href="#catalog">立即选购 →</a>
+          <a class="btn btn-ghost btn-lg" href="#flow">看看怎么买</a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="stat-num"><span data-stat="totalOrders">—</span><span class="unit">+</span></div>
+            <div class="stat-label">累计成交订单</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-num">3<span class="unit">秒</span></div>
+            <div class="stat-label">平均发货速度</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-num"><span data-stat="soldCards">—</span></div>
+            <div class="stat-label">已发放卡密</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧卡片视觉（纯 CSS，无需图片） -->
+      <div class="hero-visual" aria-hidden="true">
+        <div class="mock-card c3">
+          <div class="mock-thumb"></div>
+          <div class="mock-line w60"></div>
+          <div class="mock-line w40"></div>
+          <div class="mock-foot"><span class="mock-price">¥9.9</span><span class="mock-btn"></span></div>
+        </div>
+        <div class="mock-card c2">
+          <div class="mock-thumb"></div>
+          <div class="mock-line w60"></div>
+          <div class="mock-line w40"></div>
+          <div class="mock-foot"><span class="mock-price">¥13.5</span><span class="mock-btn"></span></div>
+        </div>
+        <div class="mock-card c1">
+          <div class="mock-thumb"></div>
+          <div class="mock-line w60"></div>
+          <div class="mock-line w40"></div>
+          <div class="mock-foot"><span class="mock-price">¥12.8</span><span class="mock-btn"></span></div>
+        </div>
+
+        <div class="hero-float f1"><span class="ico">⚡</span> 下单后 3 秒发货</div>
+        <div class="hero-float f2"><span class="ico">🛡️</span> 24h 售后保障</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 信任徽章 ===== -->
+  <section class="section-sm">
+    <div class="container">
+      <div class="trust-bar">
+        <span class="pill"><span class="ico">⚡</span><strong>秒发卡密</strong> · 付款即到账</span>
+        <span class="pill"><span class="ico">🕐</span><strong>24 小时</strong> · 无人值守自动发货</span>
+        <span class="pill"><span class="ico">🛡️</span><strong>正品保障</strong> · 官方渠道直充</span>
+        <span class="pill"><span class="ico">💬</span><strong>售后无忧</strong> · 问题 24h 内处理</span>
+        <span class="pill"><span class="ico">🔒</span><strong>安全支付</strong> · 微信 / 支付宝</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 商品列表 ===== -->
+  <section class="section" id="catalog" style="padding-top:20px">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2 class="h2">全部商品</h2>
+          <p class="sub">挑好商品 → 付款 → 秒出卡密，全程不超过一分钟</p>
+        </div>
+        <span class="result-count" id="resultCount"></span>
+      </div>
+
+      <div class="toolbar">
+        <div class="tabs" id="categoryTabs"></div>
+        <div class="toolbar-right">
+          <input class="input" type="search" id="searchInput" placeholder="搜索商品" style="height:38px;width:170px" />
+          <select class="select" id="sortSelect">
+            <option value="default">默认排序</option>
+            <option value="sold">按销量</option>
+            <option value="price-asc">价格从低到高</option>
+            <option value="price-desc">价格从高到低</option>
+            <option value="stock">库存优先</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid" id="productGrid"></div>
+    </div>
+  </section>
+
+  <!-- ===== 购买流程 ===== -->
+  <section class="section" id="flow">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2 class="h2">四步拿到卡密</h2>
+          <p class="sub">全流程自动化，没有人工介入，深夜下单也一样秒发</p>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-no">1</div>
+          <h4>挑选商品</h4>
+          <p>按分类找到需要的卡密</p>
+        </div>
+        <div class="step">
+          <div class="step-no">2</div>
+          <h4>扫码付款</h4>
+          <p>支持微信 / 支付宝</p>
+        </div>
+        <div class="step">
+          <div class="step-no">3</div>
+          <h4>自动发货</h4>
+          <p>系统 3 秒内发放卡密</p>
+        </div>
+        <div class="step">
+          <div class="step-no">4</div>
+          <h4>复制使用</h4>
+          <p>一键复制，随时可查单</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 优势 ===== -->
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2 class="h2">为什么选择简卡铺</h2>
+          <p class="sub">把「简单」做到极致，让买卡密这件事不再折腾</p>
+        </div>
+      </div>
+
+      <div class="features">
+        <div class="feature reveal">
+          <div class="ico">⚡</div>
+          <h4>真正的自动发货</h4>
+          <p>付款成功即刻出卡，7×24 小时不间断，无需等待人工审核。</p>
+        </div>
+        <div class="feature reveal">
+          <div class="ico">✅</div>
+          <h4>卡密全部实测</h4>
+          <p>上架前逐批验证可用性，不可用的卡密绝不发给用户。</p>
+        </div>
+        <div class="feature reveal">
+          <div class="ico">💰</div>
+          <h4>价格公开透明</h4>
+          <p>明码标价，没有隐藏费用，常年比官方渠道更划算。</p>
+        </div>
+        <div class="feature reveal">
+          <div class="ico">🛡️</div>
+          <h4>售后有保障</h4>
+          <p>卡密异常可申请补发，客服 24 小时内响应处理。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 常见问题 ===== -->
+  <section class="section" id="faq" style="padding-top:0">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2 class="h2">常见问题</h2>
+          <p class="sub">下单前先看一眼，能省掉 90% 的疑问</p>
+        </div>
+      </div>
+
+      <div class="features" style="grid-template-columns:repeat(2,1fr)">
+        <div class="feature reveal">
+          <div class="ico">⚡</div>
+          <h4>付款后多久发货？</h4>
+          <p>系统全自动处理，正常 3 秒内出卡密，高峰期也不会超过 1 分钟。若长时间未发货，订单页会显示状态，可直接联系客服。</p>
+        </div>
+        <div class="feature reveal">
+          <div class="ico">📋</div>
+          <h4>卡密弄丢了怎么办？</h4>
+          <p>不用怕。凭订单号随时可在「查询订单」页重新查看卡密内容，建议下单后顺手保存订单号。</p>
+        </div>
+        <div class="feature reveal">
+          <div class="ico">💳</div>
+          <h4>支持哪些支付方式？</h4>
+          <p>目前支持微信支付与支付宝，扫码即可完成付款，全程加密，不保存你的支付信息。</p>
+        </div>
+        <div class="feature reveal">
+          <div class="ico">↩️</div>
+          <h4>可以退款吗？</h4>
+          <p>虚拟商品一经发货无法撤回，原则上不支持退款。但若卡密本身存在问题，我们承诺免费补发或全额退款。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 页脚 ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a class="logo" href="index.html">
+            <span class="logo-mark" data-site-logo>简</span>
+            <span data-site-name>简卡铺</span>
+          </a>
+          <p>24 小时自动发货的虚拟卡密商城。我们不生产卡密，只是把官方渠道的好价格，用最简单的方式送到你手上。</p>
+        </div>
+
+        <div>
+          <h5>商品分类</h5>
+          <ul class="footer-links">
+            <li><a href="index.html#catalog">视频会员</a></li>
+            <li><a href="index.html#catalog">音乐会员</a></li>
+            <li><a href="index.html#catalog">游戏点卡</a></li>
+            <li><a href="index.html#catalog">软件工具</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h5>帮助中心</h5>
+          <ul class="footer-links">
+            <li><a href="#flow">购买流程</a></li>
+            <li><a href="query.html">查询订单</a></li>
+            <li><a href="index.html#faq">常见问题</a></li>
+            <li><a href="#faq">售后政策</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h5>联系我们</h5>
+          <ul class="footer-links">
+            <li><a href="#faq" data-service-link>在线客服（<span data-service-time>9:00 - 24:00</span>）</a></li>
+            <li><a href="#faq">客服邮箱 <span data-site-email>support@jiankapu.com</span></a></li>
+            <li><a href="#faq">合作 / 代理洽谈</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© <span data-year>2026</span> <span data-site-name>简卡铺</span> · 数据存储于本地 SQLite</span>
+        <span><span data-footer-text>虚拟商品一经售出不支持退换</span> · <a href="admin/login.html">管理后台</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== 悬浮按钮 ===== -->
+  <div class="fab">
+    <button class="fab-btn primary" title="在线客服" onclick="alert('演示站点：此处接入你的客服链接（微信 / QQ / 第三方客服系统）')">💬</button>
+    <button class="fab-btn" title="回到顶部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+  </div>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

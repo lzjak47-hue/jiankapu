@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#3B6EF6" />
+  <title>登录 · 简卡铺管理后台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B6EF6'/%3E%3Ctext x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='%23fff' text-anchor='middle'%3E简%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body data-page="login">
+
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-head">
+        <span class="logo-mark">简</span>
+        <h1>简卡铺 · 管理后台</h1>
+        <p>请使用管理员账号登录</p>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="loginUser">管理员账号</label>
+          <input class="input" id="loginUser" type="text" placeholder="请输入账号" autocomplete="username" value="admin" />
+        </div>
+
+        <div class="field">
+          <label for="loginPass">登录密码</label>
+          <input class="input" id="loginPass" type="password" placeholder="请输入密码" autocomplete="current-password" value="123456" />
+        </div>
+
+        <div class="field">
+          <label for="loginCaptcha">验证码</label>
+          <div class="captcha-row">
+            <input class="input" id="loginCaptcha" type="text" placeholder="请输入右侧验证码" maxlength="4" autocomplete="off" />
+            <div class="captcha-box" id="captchaBox" title="点击刷新验证码"></div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-lg btn-block" id="loginBtn" type="submit" style="margin-top:22px">登 录</button>
+      </form>
+
+      <div class="login-tip">
+        演示账号：<code>admin</code> &nbsp;密码：<code>123456</code> &nbsp;验证码由服务端生成，点击图形可刷新。
+        <br />正式环境请务必修改默认密码，并在系统设置中开启登录失败锁定。
+      </div>
+
+      <p class="small dim" style="text-align:center;margin-top:18px">
+        <a href="#" id="backToSite">← 返回前台站点</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    /* 前台与后台分端口部署，这里用服务端注入的站点地址 */
+    (function () {
+      var runtime = window.JKP_RUNTIME || {};
+      var base = runtime.siteBase || ("http://" + location.hostname + ":2001");
+      var link = document.getElementById("backToSite");
+      if (link) link.setAttribute("href", base);
+    })();
+  </script>
+
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/admin-data.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

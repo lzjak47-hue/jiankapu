@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>操作日志 · 简卡铺管理后台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B6EF6'/%3E%3Ctext x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='%23fff' text-anchor='middle'%3E简%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body class="admin-body" data-page="logs" data-title="操作日志" data-sub="谁在什么时间做了什么，全部留痕">
+
+  <aside class="sidebar" id="adminSidebar"></aside>
+
+  <div class="admin-main">
+    <header class="topbar" id="adminTopbar"></header>
+
+    <main class="admin-content">
+
+      <div class="toolbar-2">
+        <div class="search-box grow">
+          <span class="ico">🔍</span>
+          <input class="input" id="logSearch" type="search" placeholder="搜索操作内容 / 目标 / 操作人" />
+        </div>
+        <select class="select select-sm" id="logResult">
+          <option value="">全部结果</option>
+          <option value="成功">成功</option>
+          <option value="失败">失败</option>
+        </select>
+      </div>
+
+      <section class="block">
+        <div class="table-scroll">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>操作人</th>
+                <th>操作</th>
+                <th>目标</th>
+                <th>IP</th>
+                <th>结果</th>
+              </tr>
+            </thead>
+            <tbody id="logsBody"></tbody>
+          </table>
+        </div>
+        <div id="logsPager"></div>
+      </section>
+
+      <p class="small dim mt-16">
+        操作人为 <code>system</code> 的记录由系统自动任务产生（自动发货、库存锁定、支付回调等）。
+      </p>
+
+    </main>
+  </div>
+
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/admin-data.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

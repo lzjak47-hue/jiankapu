@@ -1,0 +1,69 @@
+/* ============================================================================
+   简卡铺 · 设计令牌
+   ----------------------------------------------------------------------------
+   全站唯一的变量来源。改品牌色只需动 --primary / --primary-hover / --primary-weak。
+   ========================================================================== */
+
+:root {
+  /* 中性灰阶 */
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #fbfbfd;
+  --surface-3: #f2f3f8;
+  --border: #eaecef;
+  --border-strong: #dfe1e7;
+
+  /* 文字 */
+  --text-1: #23283a;
+  --text-2: #5d6474;
+  --text-3: #9aa1b2;
+
+  /* 品牌（低饱和蓝紫，高级感） */
+  --primary: #6670e0;
+  --primary-hover: #5761d2;
+  --primary-active: #4b55c4;
+  --primary-weak: #eef0fb;
+  --primary-ring: rgb(102 112 224 / 15%);
+  --grad: linear-gradient(100deg, #6670e0, #8a81ec 55%, #a78cec);
+
+  /* 功能色（整体降饱和） */
+  --accent: #f07a52;
+  --accent-weak: #fdf1ec;
+  --success: #2e9e6b;
+  --success-weak: #eaf7f0;
+  --warning: #e39a3f;
+  --warning-weak: #fdf6ea;
+  --danger: #dc6266;
+  --danger-weak: #fdf0f1;
+
+  /* 圆角（整体加大） */
+  --radius-xl: 26px;
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-full: 999px;
+
+  /* 阴影（柔和弥散，微带蓝紫调） */
+  --shadow-xs: 0 1px 3px rgb(60 66 138 / 5%);
+  --shadow-sm: 0 4px 16px rgb(60 66 138 / 7%);
+  --shadow-md: 0 12px 32px rgb(60 66 138 / 10%);
+  --shadow-lg: 0 24px 64px rgb(60 66 138 / 16%);
+  --shadow-primary: 0 10px 26px rgb(102 112 224 / 30%);
+
+  /* 尺寸 */
+  --container: 1200px;
+  --header-h: 64px;
+  --gutter: 20px;
+  --sidebar-w: 232px;
+
+  /* 动效 */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --t-fast: 0.16s var(--ease);
+  --t-base: 0.24s var(--ease);
+
+  /* 等宽字体栈 */
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* 数字等宽，避免价格/倒计时跳动 */
+  font-variant-numeric: tabular-nums;
+}

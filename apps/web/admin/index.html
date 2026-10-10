@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>数据概览 · 简卡铺管理后台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B6EF6'/%3E%3Ctext x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='%23fff' text-anchor='middle'%3E简%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body class="admin-body" data-page="dashboard" data-title="数据概览" data-sub="今天也辛苦了，先看看店里的情况">
+
+  <aside class="sidebar" id="adminSidebar"></aside>
+
+  <div class="admin-main">
+    <header class="topbar" id="adminTopbar"></header>
+
+    <main class="admin-content">
+
+      <!-- 核心指标 -->
+      <div class="stat-grid" id="statGrid"></div>
+
+      <!-- 走势 + 排行 -->
+      <div class="grid-2 mt-24">
+
+        <section class="block">
+          <div class="block-head">
+            <div>
+              <h3>近 7 天订单走势</h3>
+              <div class="sub">把鼠标移到柱子上可查看当日订单数与成交金额</div>
+            </div>
+            <div class="right"><span class="tag">按订单数</span></div>
+          </div>
+          <div class="block-body">
+            <div class="chart" id="chart"></div>
+          </div>
+        </section>
+
+        <section class="block">
+          <div class="block-head">
+            <div>
+              <h3>热销商品 TOP 5</h3>
+              <div class="sub">按累计销量排序</div>
+            </div>
+          </div>
+          <div class="block-body">
+            <ul class="rank-list" id="topProducts"></ul>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- 最近订单 + 系统信息 -->
+      <div class="grid-2 mt-24">
+
+        <section class="block">
+          <div class="block-head">
+            <div>
+              <h3>最近订单</h3>
+              <div class="sub">最新 6 笔成交记录</div>
+            </div>
+            <div class="right"><a class="btn btn-soft btn-sm" href="orders.html">查看全部</a></div>
+          </div>
+          <div class="block-body tight">
+            <div class="table-scroll">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>订单号</th>
+                    <th>商品</th>
+                    <th>金额</th>
+                    <th>状态</th>
+                    <th>下单时间</th>
+                  </tr>
+                </thead>
+                <tbody id="recentOrdersBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="block">
+          <div class="block-head">
+            <div>
+              <h3>系统信息</h3>
+              <div class="sub">当前运行状态</div>
+            </div>
+            <div class="right"><span class="status on">运行中</span></div>
+          </div>
+          <div class="block-body">
+            <div id="sysInfo"></div>
+            <div class="notice" style="margin-top:18px">
+              <span>💡</span>
+              <span>这是纯前端演示后台，所有数据均为示例，刷新页面即恢复初始状态。接入真实接口后可替换 <code>admin-data.js</code>。</span>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/admin-data.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

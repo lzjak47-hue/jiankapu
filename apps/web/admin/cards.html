@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>卡密库存 · 简卡铺管理后台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B6EF6'/%3E%3Ctext x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='%23fff' text-anchor='middle'%3E简%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body class="admin-body" data-page="cards" data-title="卡密库存" data-sub="批量导入卡密，实时掌握可用库存">
+
+  <aside class="sidebar" id="adminSidebar"></aside>
+
+  <div class="admin-main">
+    <header class="topbar" id="adminTopbar"></header>
+
+    <main class="admin-content">
+
+      <div class="stat-grid" id="cardStats"></div>
+
+      <div class="toolbar-2 mt-24">
+        <select class="select select-sm" id="cardProduct" style="min-width:200px"></select>
+        <div class="search-box grow">
+          <span class="ico">🔍</span>
+          <input class="input" id="cardSearch" type="search" placeholder="搜索卡密内容" />
+        </div>
+        <select class="select select-sm" id="cardStatus">
+          <option value="">全部状态</option>
+          <option value="未售">未售</option>
+          <option value="已售">已售</option>
+          <option value="已锁定">已锁定</option>
+        </select>
+        <div class="spacer"></div>
+        <button class="btn btn-primary" id="cardImport">⬆ 批量导入卡密</button>
+      </div>
+
+      <section class="block">
+        <div class="table-scroll">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>卡密</th>
+                <th>所属商品</th>
+                <th>状态</th>
+                <th>导入时间</th>
+                <th>售出时间</th>
+                <th>关联订单</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="cardsBody"></tbody>
+          </table>
+        </div>
+        <div id="cardsPager"></div>
+      </section>
+
+      <p class="small dim mt-16">
+        「已锁定」表示用户已下单但尚未完成支付，系统会临时占用该卡密，超时未支付将自动释放。
+      </p>
+
+    </main>
+  </div>
+
+  <!-- 批量导入弹窗 -->
+  <div class="overlay" id="importModal">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-head">
+        <h3>批量导入卡密</h3>
+        <button class="modal-close" data-close aria-label="关闭">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label for="importProduct">导入到商品 <span class="req">*</span></label>
+          <select class="select" id="importProduct" style="width:100%"></select>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label for="importText">卡密内容 <span class="req">*</span></label>
+          <textarea class="textarea" id="importText" rows="9" placeholder="一行一条卡密，例如：&#10;AIQY-8F3K-2M9D-77QX&#10;AIQY-5T1P-6B4N-20LZ&#10;AIQY-9D4L-7N2P-55KT"></textarea>
+          <div class="import-hint">支持直接粘贴 Excel / 文本列，空行会自动忽略。重复卡密请在导入前去重。</div>
+          <div class="import-hint mt-8" id="importCount">等待粘贴卡密…</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost btn-block" data-close>取消</button>
+        <button class="btn btn-primary btn-block" id="importConfirm">确认导入</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/admin-data.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

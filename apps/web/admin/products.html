@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>商品管理 · 简卡铺管理后台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B6EF6'/%3E%3Ctext x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='%23fff' text-anchor='middle'%3E简%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body class="admin-body" data-page="products" data-title="商品管理" data-sub="上架、改价、补库存都在这里">
+
+  <aside class="sidebar" id="adminSidebar"></aside>
+
+  <div class="admin-main">
+    <header class="topbar" id="adminTopbar"></header>
+
+    <main class="admin-content">
+
+      <div class="toolbar-2">
+        <div class="search-box grow">
+          <span class="ico">🔍</span>
+          <input class="input" id="productSearch" type="search" placeholder="搜索商品名称或 ID" />
+        </div>
+        <select class="select select-sm" id="productCategory"></select>
+        <select class="select select-sm" id="productStatus">
+          <option value="">全部状态</option>
+          <option value="1">已上架</option>
+          <option value="0">已下架</option>
+        </select>
+        <span class="result-count" id="productTotal"></span>
+        <div class="spacer"></div>
+        <a class="btn btn-primary" id="productAdd" href="product-edit.html">＋ 新增商品</a>
+      </div>
+
+      <section class="block">
+        <div class="table-scroll">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>商品</th>
+                <th>售价</th>
+                <th>库存</th>
+                <th>已售</th>
+                <th>角标</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="productsBody"></tbody>
+          </table>
+        </div>
+        <div id="productsPager"></div>
+      </section>
+
+      <p class="small dim mt-16">
+        提示：库存为 0 的商品在前台会自动显示「已售罄」并禁用购买按钮。补充库存请到
+        <a href="cards.html">卡密库存</a> 页面导入卡密。
+      </p>
+
+    </main>
+  </div>
+
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/admin-data.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>订单管理 · 简卡铺管理后台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B6EF6'/%3E%3Ctext x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='%23fff' text-anchor='middle'%3E简%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body class="admin-body" data-page="orders" data-title="订单管理" data-sub="查订单、补发卡密、处理退款">
+
+  <aside class="sidebar" id="adminSidebar"></aside>
+
+  <div class="admin-main">
+    <header class="topbar" id="adminTopbar"></header>
+
+    <main class="admin-content">
+
+      <div class="stat-grid" id="orderStats"></div>
+
+      <div class="toolbar-2 mt-24">
+        <div class="search-box grow">
+          <span class="ico">🔍</span>
+          <input class="input" id="orderSearch" type="search" placeholder="搜索订单号 / 商品 / 联系方式" />
+        </div>
+        <select class="select select-sm" id="orderStatus">
+          <option value="">全部状态</option>
+          <option value="已发货">已发货</option>
+          <option value="处理中">处理中</option>
+          <option value="待付款">待付款</option>
+          <option value="已退款">已退款</option>
+          <option value="失败">失败</option>
+        </select>
+        <select class="select select-sm" id="orderPay">
+          <option value="">全部支付方式</option>
+          <option value="微信支付">微信支付</option>
+          <option value="支付宝">支付宝</option>
+        </select>
+      </div>
+
+      <section class="block">
+        <div class="table-scroll">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>订单号</th>
+                <th>商品</th>
+                <th>联系方式</th>
+                <th>金额</th>
+                <th>支付方式</th>
+                <th>状态</th>
+                <th>下单时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="ordersBody"></tbody>
+          </table>
+        </div>
+        <div id="ordersPager"></div>
+      </section>
+
+      <p class="small dim mt-16">
+        提示：卡密类订单由系统自动发货；「补发」会重新分配一条未售卡密给用户，适用于用户反馈卡密无效的场景。
+      </p>
+
+    </main>
+  </div>
+
+  <!-- 订单详情弹窗 -->
+  <div class="overlay" id="orderModal">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-head">
+        <h3>订单详情</h3>
+        <button class="modal-close" data-close aria-label="关闭">✕</button>
+      </div>
+      <div class="modal-body" id="orderDetail"></div>
+    </div>
+  </div>
+
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/admin-data.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

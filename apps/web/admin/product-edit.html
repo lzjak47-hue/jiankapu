@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>编辑商品 · 简卡铺管理后台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B6EF6'/%3E%3Ctext x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='%23fff' text-anchor='middle'%3E简%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body class="admin-body" data-page="product-edit" data-title="编辑商品" data-sub="填好下面的信息，右侧可实时预览前台卡片效果">
+
+  <aside class="sidebar" id="adminSidebar"></aside>
+
+  <div class="admin-main">
+    <header class="topbar" id="adminTopbar"></header>
+
+    <main class="admin-content">
+
+      <div class="breadcrumb">
+        <a href="products.html">商品管理</a><span class="sep">/</span>
+        <span id="editTitle">编辑商品</span>
+      </div>
+
+      <form id="productForm" novalidate>
+        <div class="edit-layout">
+
+          <!-- 左：表单 -->
+          <div>
+
+            <section class="block">
+              <div class="block-head"><h3>基础信息</h3></div>
+              <div class="block-body">
+                <div class="form-grid">
+
+                  <div class="field col-span-2">
+                    <label for="fName">商品名称 <span class="req">*</span></label>
+                    <input class="input" id="fName" type="text" placeholder="例如：爱奇艺黄金 VIP 会员" />
+                    <div class="desc">建议写清「品牌 + 权益 + 时长」，例如「腾讯视频 VIP 会员 月卡」。</div>
+                  </div>
+
+                  <div class="field">
+                    <label for="fId">商品 ID</label>
+                    <input class="input" id="fId" type="text" readonly />
+                    <div class="desc">系统自动生成，用于订单与卡密关联，不可修改。</div>
+                  </div>
+
+                  <div class="field">
+                    <label for="fCategory">所属分类 <span class="req">*</span></label>
+                    <select class="select" id="fCategory" style="width:100%"></select>
+                  </div>
+
+                  <div class="field">
+                    <label for="fPrice">售价（元） <span class="req">*</span></label>
+                    <input class="input" id="fPrice" type="number" step="0.01" min="0" placeholder="12.80" />
+                  </div>
+
+                  <div class="field">
+                    <label for="fOldPrice">划线价（元）</label>
+                    <input class="input" id="fOldPrice" type="number" step="0.01" min="0" placeholder="选填，用于显示原价" />
+                    <div class="desc">填了会显示删除线原价，配合售价制造优惠感。</div>
+                  </div>
+
+                  <div class="field">
+                    <label for="fEmoji">封面占位符号</label>
+                    <input class="input" id="fEmoji" type="text" maxlength="4" placeholder="🎬" />
+                    <div class="desc">演示用 emoji。正式环境请改为上传商品图片。</div>
+                  </div>
+
+                  <div class="field">
+                    <label for="fBadge">角标文案</label>
+                    <input class="input" id="fBadge" type="text" maxlength="6" placeholder="热销 / 秒发 / 省钱" />
+                    <div class="desc">留空则不显示角标。</div>
+                  </div>
+
+                </div>
+              </div>
+            </section>
+
+            <section class="block mt-16">
+              <div class="block-head"><h3>规格与状态</h3></div>
+              <div class="block-body">
+
+                <div class="field">
+                  <label for="specInput">可选规格</label>
+                  <div class="chip-input" id="specChips">
+                    <input id="specInput" type="text" placeholder="输入规格后按回车添加，例如「月卡」" />
+                  </div>
+                  <div class="desc">支持多规格，前台会让用户选择。留空表示该商品无规格。</div>
+                </div>
+
+                <div class="switch-row">
+                  <div class="txt">
+                    <div class="t1">立即上架</div>
+                    <div class="t2">关闭后该商品在前台隐藏，已产生的订单不受影响。</div>
+                  </div>
+                  <span class="switch is-on" id="fStatus"></span>
+                </div>
+
+              </div>
+            </section>
+
+            <section class="block mt-16">
+              <div class="block-head"><h3>文案内容</h3></div>
+              <div class="block-body">
+                <div class="form-grid">
+
+                  <div class="field col-span-2">
+                    <label for="fDesc">一句话卖点</label>
+                    <input class="input" id="fDesc" type="text" placeholder="支持手机 / 平板 / 电脑，下单后系统自动发货。" />
+                    <div class="desc">显示在商品卡片和详情页顶部，控制在一行内最清爽。</div>
+                  </div>
+
+                  <div class="field col-span-2">
+                    <label for="fDetail">商品详情</label>
+                    <textarea class="textarea" id="fDetail" placeholder="详细介绍商品权益、适用范围、渠道来源等"></textarea>
+                  </div>
+
+                  <div class="field col-span-2">
+                    <label for="fNotice">购买须知</label>
+                    <textarea class="textarea" id="fNotice" placeholder="每行一条，例如：&#10;卡密为虚拟商品，一经发货不支持退换。&#10;请在 24 小时内完成激活。"></textarea>
+                    <div class="desc">每行一条，前台会渲染成列表。</div>
+                  </div>
+
+                  <div class="field col-span-2">
+                    <label for="fTutorial">使用教程</label>
+                    <textarea class="textarea" id="fTutorial" placeholder="每行一步，例如：&#10;付款成功后，页面会自动展示卡密。&#10;打开 App → 我的 → 会员中心 → 兑换会员。"></textarea>
+                    <div class="desc">每行一步，前台会自动编号。</div>
+                  </div>
+
+                </div>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- 右：预览 -->
+          <div class="preview-sticky">
+            <section class="block">
+              <div class="block-head">
+                <div>
+                  <h3>前台预览</h3>
+                  <div class="sub">输入时实时更新</div>
+                </div>
+              </div>
+              <div class="block-body">
+                <div id="previewCard"></div>
+                <div class="notice" style="margin-top:16px">
+                  <span>👀</span>
+                  <span>这是商品在首页列表中的样子。真正上线前请把封面换成真实商品图。</span>
+                </div>
+              </div>
+            </section>
+          </div>
+
+        </div>
+
+        <!-- 底部保存条 -->
+        <div class="save-bar">
+          <span class="hint">带 <span class="req" style="color:var(--danger)">*</span> 为必填项</span>
+          <div class="right">
+            <button class="btn btn-ghost" type="button" id="resetBtn">取消</button>
+            <button class="btn btn-primary" type="submit" id="saveBtn">保存商品</button>
+          </div>
+        </div>
+      </form>
+
+    </main>
+  </div>
+
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/admin-data.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "name": "jiankapu",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "简卡铺 —— 24 小时自动发货的虚拟卡密商城（Node + PostgreSQL + React 前台 + React 管理后台）",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "setup": "npm install && npm --prefix apps/web-react install && npm --prefix apps/web-react run build",
+    "start": "node apps/server/src/index.js",
+    "dev": "node --watch apps/server/src/index.js",
+    "start:site": "node apps/server/src/index.js --only site",
+    "start:admin": "node apps/server/src/index.js --only admin",
+    "build": "npm --prefix apps/web-react run build",
+    "dev:web": "npm --prefix apps/web-react run dev",
+    "seed": "node apps/server/src/seed.js",
+    "reset": "node apps/server/src/seed.js --force",
+    "test": "node apps/server/test/run.js",
+    "test:web": "npm --prefix apps/web-react test",
+    "test:all": "npm test && npm run test:web"
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
+  },
+  "keywords": ["发卡", "卡密", "自动发货", "简卡铺", "postgresql", "node", "react", "typescript", "vite"],
+  "license": "MIT"
+}

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>系统设置 · 简卡铺管理后台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B6EF6'/%3E%3Ctext x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='%23fff' text-anchor='middle'%3E简%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body class="admin-body" data-page="settings" data-title="系统设置" data-sub="站点信息、交易规则、支付接口与安全策略">
+
+  <aside class="sidebar" id="adminSidebar"></aside>
+
+  <div class="admin-main">
+    <header class="topbar" id="adminTopbar"></header>
+
+    <main class="admin-content">
+
+      <div class="settings-layout">
+
+        <!-- 分区导航 -->
+        <nav class="settings-nav" id="settingsNav">
+          <button class="is-active" data-pane="site">🏠 基础设置</button>
+          <button data-pane="trade">🛒 交易设置</button>
+          <button data-pane="payment">💳 支付设置</button>
+          <button data-pane="notice">📢 公告管理</button>
+          <button data-pane="seo">🔍 SEO 设置</button>
+          <button data-pane="security">🔒 安全设置</button>
+        </nav>
+
+        <div>
+
+          <!-- ============ 基础设置 ============ -->
+          <section class="settings-pane is-active" id="pane-site">
+            <div class="block">
+              <div class="block-head">
+                <div>
+                  <h3>基础设置</h3>
+                  <div class="sub">站点名称、Logo 与联系方式</div>
+                </div>
+              </div>
+              <div class="block-body">
+                <div class="form-grid">
+
+                  <div class="field">
+                    <label for="setSiteName">站点名称</label>
+                    <input class="input" id="setSiteName" name="name" type="text" />
+                  </div>
+
+                  <div class="field">
+                    <label for="setSubtitle">站点副标题</label>
+                    <input class="input" id="setSubtitle" name="subtitle" type="text" />
+                  </div>
+
+                  <div class="field">
+                    <label for="setLogoMark">Logo 字符</label>
+                    <input class="input" id="setLogoMark" name="logoMark" type="text" maxlength="2" />
+                    <div class="desc">显示在左上角方块里的单个汉字或字母。</div>
+                  </div>
+
+                  <div class="field">
+                    <label for="setIcp">ICP 备案号</label>
+                    <input class="input" id="setIcp" name="icp" type="text" placeholder="沪ICP备2026000000号" />
+                  </div>
+
+                  <div class="field">
+                    <label for="setServiceUrl">客服链接</label>
+                    <input class="input" id="setServiceUrl" name="serviceUrl" type="text" placeholder="https:// 或 微信 / QQ 号" />
+                    <div class="desc">前台右下角悬浮客服按钮会跳转到此地址。</div>
+                  </div>
+
+                  <div class="field">
+                    <label for="setServiceTime">客服在线时间</label>
+                    <input class="input" id="setServiceTime" name="serviceTime" type="text" placeholder="9:00 - 24:00" />
+                  </div>
+
+                  <div class="field">
+                    <label for="setEmail">客服邮箱</label>
+                    <input class="input" id="setEmail" name="email" type="email" />
+                  </div>
+
+                  <div class="field">
+                    <label for="setFooterText">页脚声明</label>
+                    <input class="input" id="setFooterText" name="footerText" type="text" />
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ 交易设置 ============ -->
+          <section class="settings-pane" id="pane-trade">
+            <div class="block">
+              <div class="block-head"><h3>交易设置</h3></div>
+              <div class="block-body">
+                <div class="form-grid">
+
+                  <div class="field">
+                    <label for="setCurrency">结算货币</label>
+                    <select class="select" id="setCurrency" name="currency" style="width:100%">
+                      <option value="CNY">人民币 CNY ¥</option>
+                      <option value="USD">美元 USD $</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="setOrderPrefix">订单号前缀</label>
+                    <input class="input" id="setOrderPrefix" name="orderPrefix" type="text" maxlength="6" />
+                    <div class="desc">例如 JKP，生成的订单号形如 JKP20260105018。</div>
+                  </div>
+
+                  <div class="field">
+                    <label for="setMinOrder">最低下单金额（元）</label>
+                    <input class="input" id="setMinOrder" name="minOrder" type="number" min="0" step="0.01" />
+                  </div>
+
+                  <div class="field">
+                    <label for="setAutoClose">未支付自动关单（分钟）</label>
+                    <input class="input" id="setAutoClose" name="autoCloseMinutes" type="number" min="1" />
+                    <div class="desc">超时未支付的订单会自动关闭并释放占用的卡密。</div>
+                  </div>
+
+                  <div class="field">
+                    <label for="setLowStock">库存预警阈值</label>
+                    <input class="input" id="setLowStock" name="lowStockWarn" type="number" min="0" />
+                    <div class="desc">商品可用卡密低于该数值时，后台会标红提醒。</div>
+                  </div>
+
+                  <div class="field">
+                    <label for="setRefundWindow">售后受理时限（小时）</label>
+                    <input class="input" id="setRefundWindow" name="refundWindowHours" type="number" min="1" />
+                    <div class="desc">超过该时限的订单不再受理补发申请。</div>
+                  </div>
+
+                </div>
+
+                <div class="switch-row mt-16">
+                  <div class="txt">
+                    <div class="t1">允许游客下单</div>
+                    <div class="t2">关闭后用户必须先注册登录才能购买商品。</div>
+                  </div>
+                  <span class="switch is-on" name="guestOrder"></span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ 支付设置 ============ -->
+          <section class="settings-pane" id="pane-payment">
+            <div class="block">
+              <div class="block-head">
+                <div>
+                  <h3>支付设置</h3>
+                  <div class="sub">至少启用一种支付方式，否则前台无法下单</div>
+                </div>
+              </div>
+              <div class="block-body">
+
+                <div class="switch-row">
+                  <div class="txt">
+                    <div class="t1">💬 微信支付</div>
+                    <div class="t2">启用后前台会展示微信扫码支付选项。</div>
+                  </div>
+                  <span class="switch is-on" name="wxEnable"></span>
+                </div>
+
+                <div class="form-grid mt-16">
+                  <div class="field">
+                    <label for="setWxMch">微信商户号</label>
+                    <input class="input" id="setWxMch" name="wxMchId" type="text" placeholder="1600******" />
+                  </div>
+                  <div class="field">
+                    <label for="setWxKey">微信 API 密钥</label>
+                    <input class="input" id="setWxKey" name="wxKey" type="password" placeholder="留空表示不修改" />
+                    <div class="desc">密钥仅保存在服务端，不会回传到浏览器。当前状态：<span id="wxKeyHint">尚未配置</span></div>
+                  </div>
+                </div>
+
+                <div class="switch-row mt-16">
+                  <div class="txt">
+                    <div class="t1">🅰️ 支付宝</div>
+                    <div class="t2">启用后前台会展示支付宝扫码支付选项。</div>
+                  </div>
+                  <span class="switch is-on" name="aliEnable"></span>
+                </div>
+
+                <div class="form-grid mt-16">
+                  <div class="field">
+                    <label for="setAliApp">支付宝 AppID</label>
+                    <input class="input" id="setAliApp" name="aliAppId" type="text" placeholder="2021**********" />
+                  </div>
+                  <div class="field">
+                    <label for="setAliKey">支付宝私钥</label>
+                    <input class="input" id="setAliKey" name="aliKey" type="password" placeholder="留空表示不修改" />
+                    <div class="desc">当前状态：<span id="aliKeyHint">尚未配置</span></div>
+                  </div>
+                  <div class="field">
+                    <label for="setQrExpire">二维码有效期（分钟）</label>
+                    <input class="input" id="setQrExpire" name="qrExpireMinutes" type="number" min="1" />
+                    <div class="desc">前台支付页面的倒计时时长。</div>
+                  </div>
+                </div>
+
+                <div class="notice mt-16">
+                  <span>⚠️</span>
+                  <span>以上密钥均为演示占位。真实密钥请只在服务端环境变量中配置，切勿写进前端代码或提交到代码仓库。</span>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ 公告管理 ============ -->
+          <section class="settings-pane" id="pane-notice">
+            <div class="block">
+              <div class="block-head">
+                <div>
+                  <h3>公告管理</h3>
+                  <div class="sub">前台顶部公告条会轮播已启用的公告</div>
+                </div>
+                <div class="right">
+                  <button class="btn btn-soft btn-sm" id="announceAdd">＋ 新增公告</button>
+                </div>
+              </div>
+              <div class="block-body">
+                <div id="announceList"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ SEO 设置 ============ -->
+          <section class="settings-pane" id="pane-seo">
+            <div class="block">
+              <div class="block-head"><h3>SEO 设置</h3></div>
+              <div class="block-body">
+                <div class="field">
+                  <label for="setSeoTitle">网站标题</label>
+                  <input class="input" id="setSeoTitle" name="title" type="text" />
+                  <div class="desc">显示在浏览器标签页，也是搜索引擎结果的主标题。</div>
+                </div>
+                <div class="field">
+                  <label for="setSeoKeywords">关键词</label>
+                  <input class="input" id="setSeoKeywords" name="keywords" type="text" />
+                  <div class="desc">用英文逗号分隔。</div>
+                </div>
+                <div class="field" style="margin-bottom:0">
+                  <label for="setSeoDesc">网站描述</label>
+                  <textarea class="textarea" id="setSeoDesc" name="description"></textarea>
+                  <div class="desc">建议 80-120 字，会显示在搜索结果摘要中。</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ 安全设置 ============ -->
+          <section class="settings-pane" id="pane-security">
+            <div class="block">
+              <div class="block-head">
+                <div>
+                  <h3>安全设置</h3>
+                  <div class="sub">后台访问控制与登录保护</div>
+                </div>
+              </div>
+              <div class="block-body">
+
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="setAdminPath">后台访问路径</label>
+                    <input class="input" id="setAdminPath" name="adminPath" type="text" placeholder="/admin" />
+                    <div class="desc">改成不易猜到的路径可降低被扫描风险。</div>
+                  </div>
+                  <div class="field">
+                    <label for="setSession">登录状态有效期（分钟）</label>
+                    <input class="input" id="setSession" name="sessionTimeout" type="number" min="5" />
+                  </div>
+                  <div class="field">
+                    <label for="setLockThreshold">登录失败锁定阈值（次）</label>
+                    <input class="input" id="setLockThreshold" name="lockThreshold" type="number" min="1" />
+                    <div class="desc">连续失败达到该次数后临时锁定该 IP。</div>
+                  </div>
+                </div>
+
+                <div class="switch-row mt-16">
+                  <div class="txt">
+                    <div class="t1">开启登录验证码</div>
+                    <div class="t2">强烈建议开启，可有效阻挡暴力破解与自动化脚本。</div>
+                  </div>
+                  <span class="switch is-on" name="captcha"></span>
+                </div>
+
+                <div class="switch-row">
+                  <div class="txt">
+                    <div class="t1">开启登录失败锁定</div>
+                    <div class="t2">达到阈值后锁定来源 IP 一段时间。</div>
+                  </div>
+                  <span class="switch is-on" name="loginFailLock"></span>
+                </div>
+
+                <div class="notice mt-16">
+                  <span>🔐</span>
+                  <span>首次部署请立即修改默认管理员密码（当前演示账号 admin / 123456），并关闭演示数据。</span>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+      <!-- 保存条 -->
+      <div class="save-bar">
+        <span class="hint">改动会在点击保存后生效（演示环境保存到内存）</span>
+        <div class="right">
+          <button class="btn btn-ghost" id="resetSettings">放弃修改</button>
+          <button class="btn btn-primary" id="saveSettings">保存设置</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/admin-data.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>
